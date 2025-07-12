@@ -1,0 +1,305 @@
+<script setup lang="ts">
+import DashboardLayout from '@/components/DashboardLayout.vue'
+import { ref } from 'vue'
+import { 
+  BookOutline, 
+  TrophyOutline, 
+  TrendingUpOutline, 
+  TimeOutline,
+  CheckmarkCircleOutline,
+  PlayCircleOutline,
+  DocumentTextOutline,
+  PeopleOutline
+} from '@vicons/ionicons5'
+
+const stats = ref([
+  { 
+    title: 'Skills Learned', 
+    value: '24', 
+    change: '+3 this month', 
+    icon: BookOutline,
+    color: 'from-blue-500 to-blue-600',
+    bgColor: 'bg-blue-50',
+    textColor: 'text-blue-600'
+  },
+  { 
+    title: 'Certificates', 
+    value: '8', 
+    change: '+2 this month', 
+    icon: TrophyOutline,
+    color: 'from-green-500 to-green-600',
+    bgColor: 'bg-green-50',
+    textColor: 'text-green-600'
+  },
+  { 
+    title: 'Study Hours', 
+    value: '156', 
+    change: '+12h this week', 
+    icon: TimeOutline,
+    color: 'from-purple-500 to-purple-600',
+    bgColor: 'bg-purple-50',
+    textColor: 'text-purple-600'
+  },
+  { 
+    title: 'Progress Rate', 
+    value: '87%', 
+    change: '+5% this month', 
+    icon: TrendingUpOutline,
+    color: 'from-orange-500 to-orange-600',
+    bgColor: 'bg-orange-50',
+    textColor: 'text-orange-600'
+  }
+])
+
+const recentActivities = ref([
+  { 
+    action: 'Completed React Advanced Course', 
+    user: 'John Doe', 
+    time: '2 hours ago', 
+    type: 'certificate', 
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+    skill: 'React',
+    progress: 100
+  },
+  { 
+    action: 'Started Node.js Backend Course', 
+    user: 'Jane Smith', 
+    time: '4 hours ago', 
+    type: 'learning', 
+    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
+    skill: 'Node.js',
+    progress: 35
+  },
+  { 
+    action: 'Achieved Python Certification', 
+    user: 'Mike Johnson', 
+    time: '1 day ago', 
+    type: 'certificate', 
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
+    skill: 'Python',
+    progress: 100
+  },
+  { 
+    action: 'Completed UI/UX Design Module', 
+    user: 'Sarah Wilson', 
+    time: '2 days ago', 
+    type: 'learning', 
+    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
+    skill: 'UI/UX',
+    progress: 75
+  }
+])
+
+const skillProgress = ref([
+  { name: 'JavaScript', progress: 95, level: 'Advanced', color: 'from-yellow-400 to-orange-500' },
+  { name: 'React', progress: 88, level: 'Advanced', color: 'from-blue-400 to-cyan-500' },
+  { name: 'Node.js', progress: 75, level: 'Intermediate', color: 'from-green-400 to-emerald-500' },
+  { name: 'Python', progress: 65, level: 'Intermediate', color: 'from-blue-500 to-indigo-600' },
+  { name: 'UI/UX Design', progress: 45, level: 'Beginner', color: 'from-purple-400 to-pink-500' }
+])
+
+const getActivityIcon = (type: string) => {
+  const icons = {
+    certificate: CheckmarkCircleOutline,
+    learning: PlayCircleOutline,
+    project: DocumentTextOutline,
+    collaboration: PeopleOutline
+  }
+  return icons[type as keyof typeof icons] || PlayCircleOutline
+}
+
+const getActivityColor = (type: string) => {
+  const colors = {
+    certificate: 'bg-green-100 text-green-600',
+    learning: 'bg-blue-100 text-blue-600',
+    project: 'bg-purple-100 text-purple-600',
+    collaboration: 'bg-orange-100 text-orange-600'
+  }
+  return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-600'
+}
+</script>
+
+<template>
+  <div>
+    <!-- Welcome Section -->
+    <div class="mb-6 sm:mb-8">
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome back, John! 👋</h1>
+      <p class="text-gray-600 text-sm sm:text-base">Track your skills progress and continue learning.</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
+      <div v-for="stat in stats" :key="stat.title" 
+           class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+        <div class="flex items-center justify-between mb-3 sm:mb-4">
+          <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg sm:rounded-xl" :class="stat.bgColor">
+            <component :is="stat.icon" class="w-5 h-5 sm:w-6 sm:h-6" :class="stat.textColor" />
+          </div>
+          <div class="text-right">
+            <div class="text-xs sm:text-sm font-medium text-gray-500">{{ stat.title }}</div>
+            <div class="text-xl sm:text-2xl font-bold" :class="stat.textColor">{{ stat.value }}</div>
+          </div>
+        </div>
+        <div class="flex items-center text-xs sm:text-sm">
+          <span class="text-green-600 font-medium">{{ stat.change }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+      <!-- Recent Activities -->
+      <div class="lg:col-span-2">
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-800">Recent Learning Activities</h2>
+            <p class="text-gray-600 text-sm mt-1">Your latest skill development progress</p>
+          </div>
+          <div class="p-4 sm:p-6">
+            <div class="space-y-3 sm:space-y-4">
+              <div v-for="activity in recentActivities" :key="activity.time" 
+                   class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-colors">
+                <div class="avatar">
+                  <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full ring-2 ring-white">
+                    <img :src="activity.avatar" :alt="activity.user" />
+                  </div>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ activity.action }}</p>
+                  <p class="text-xs sm:text-sm text-gray-600">by {{ activity.user }} • {{ activity.skill }}</p>
+                </div>
+                <div class="flex items-center gap-2 flex-shrink-0">
+                  <component :is="getActivityIcon(activity.type)" class="w-4 h-4 sm:w-5 sm:h-5" :class="getActivityColor(activity.type).split(' ')[1]" />
+                  <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">{{ activity.time }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 sm:mt-6">
+              <button class="btn btn-outline w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300 text-sm">
+                View All Activities
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="space-y-4 sm:space-y-6">
+        <!-- Quick Actions Card -->
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-800">Quick Actions</h2>
+            <p class="text-gray-600 text-sm mt-1">Continue your learning journey</p>
+          </div>
+          <div class="p-4 sm:p-6 space-y-3">
+            <button class="btn w-full bg-gradient-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-lg text-white text-sm">
+              <PlayCircleOutline class="w-4 h-4" />
+              Start New Course
+            </button>
+            <button class="btn btn-outline w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300 text-sm">
+              <DocumentTextOutline class="w-4 h-4" />
+              Take Assessment
+            </button>
+            <button class="btn btn-outline w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300 text-sm">
+              <PeopleOutline class="w-4 h-4" />
+              Join Study Group
+            </button>
+          </div>
+        </div>
+
+        <!-- Skill Progress Card -->
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+          <div class="p-4 sm:p-6 border-b border-gray-100">
+            <h2 class="text-lg sm:text-xl font-bold text-gray-800">Skill Progress</h2>
+            <p class="text-gray-600 text-sm mt-1">Your current skill levels</p>
+          </div>
+          <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
+            <div v-for="skill in skillProgress" :key="skill.name" class="space-y-2">
+              <div class="flex justify-between items-center">
+                <span class="text-sm font-medium text-gray-700">{{ skill.name }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-gray-500">{{ skill.level }}</span>
+                  <span class="text-sm font-bold" :class="skill.color.includes('yellow') ? 'text-yellow-600' : skill.color.includes('blue') ? 'text-blue-600' : skill.color.includes('green') ? 'text-green-600' : skill.color.includes('purple') ? 'text-purple-600' : 'text-gray-600'">{{ skill.progress }}%</span>
+                </div>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="h-2 rounded-full transition-all duration-300" :class="`bg-gradient-to-r ${skill.color}`" :style="`width: ${skill.progress}%`"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 mt-6 sm:mt-8">
+      <!-- Study Partners -->
+      <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 sm:p-6 border-b border-gray-100">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800">Study Partners</h2>
+          <p class="text-gray-600 text-sm mt-1">Learning together</p>
+        </div>
+        <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+            <div class="avatar">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-2 ring-white">
+                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face" alt="Avatar" />
+              </div>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800 text-sm sm:text-base">John Doe</p>
+              <p class="text-xs sm:text-sm text-gray-600">React Expert • 15 courses completed</p>
+            </div>
+            <div class="badge badge-success bg-green-100 text-green-600 border-0 text-xs">Online</div>
+          </div>
+          <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+            <div class="avatar">
+              <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full ring-2 ring-white">
+                <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" alt="Avatar" />
+              </div>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-800 text-sm sm:text-base">Jane Smith</p>
+              <p class="text-xs sm:text-sm text-gray-600">Python Developer • 8 courses completed</p>
+            </div>
+            <div class="badge badge-warning bg-yellow-100 text-yellow-600 border-0 text-xs">Studying</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Certificates -->
+      <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-4 sm:p-6 border-b border-gray-100">
+          <h2 class="text-lg sm:text-xl font-bold text-gray-800">Recent Certificates</h2>
+          <p class="text-gray-600 text-sm mt-1">Your latest achievements</p>
+        </div>
+        <div class="p-4 sm:p-6 space-y-3 sm:space-y-4">
+          <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-colors">
+            <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg sm:rounded-xl">
+              <TrophyOutline class="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-800 text-sm sm:text-base">React Advanced Certification</p>
+              <p class="text-xs sm:text-sm text-gray-600">Completed 2 hours ago</p>
+            </div>
+            <button class="btn btn-ghost btn-sm">
+              <DocumentTextOutline class="w-4 h-4" />
+            </button>
+          </div>
+          <div class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-colors">
+            <div class="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg sm:rounded-xl">
+              <TrophyOutline class="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+            </div>
+            <div class="flex-1">
+              <p class="font-medium text-gray-800 text-sm sm:text-base">Python Fundamentals</p>
+              <p class="text-xs sm:text-sm text-gray-600">Completed 1 day ago</p>
+            </div>
+            <button class="btn btn-ghost btn-sm">
+              <DocumentTextOutline class="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template> 

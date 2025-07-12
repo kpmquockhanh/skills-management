@@ -1,0 +1,85 @@
+services:
+  # nginx:
+  #   image: 'nginx:stable'
+  #   container_name: sm-nginx
+  #   ports:
+  #     - '80:80'
+  #     - '5173:5173'
+  #   volumes:
+  #     - ./docker_configs/nginx/nginx.conf:/etc/nginx/conf.d/app.conf # Sync config from host
+  #   networks:
+  #     - sm
+  web:
+    build:
+      context: ./frontend
+      dockerfile: ../docker_configs/Dockerfile_web
+    container_name: sm-web
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "5173:5173"
+    networks:
+      - sm
+    command: yarn dev
+  app:
+    build:
+      context: ./backend
+      dockerfile: ../docker_configs/Dockerfile_backend
+    container_name: sm-app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    ports:
+      - "8000:8000"
+    networks:
+      - sm
+    command: yarn dev
+    depends_on:
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+  mongodb:
+    image: mongo:4.2.3-bionic
+    container_name: sm-mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=kpm
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+    volumes:
+      # seeding scripts
+      - ./mongo-entrypoint:/docker-entrypoint-initdb.d
+      # named volumes
+      - ./db_data:/data/db
+      - ./db_config:/data/configdb
+    networks:
+      - sm
+
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    container_name: sm-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - rabbitmq_logs:/var/log/rabbitmq
+    networks:
+      - sm
+
+volumes:
+  mongoconfig:
+  rabbitmq_data:
+  rabbitmq_logs:
+
+networks:
+  sm:
+    driver: bridge

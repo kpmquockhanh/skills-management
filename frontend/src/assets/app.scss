@@ -1,0 +1,32 @@
+@use "base";
+@use 'css/404' as notfound;
+@use 'css/dropzone';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer utilities {
+  @variants responsive {
+    .masonry {
+      column-gap: 6px;
+      column-count: 2;
+    }
+    .masonry-sm {
+      column-gap: 6px;
+      column-count: 2;
+    }
+    .masonry-md {
+      column-gap: 6px;
+      column-count: 3;
+    }
+    .masonry-lg {
+      column-gap: 6px;
+      column-count: 5;
+    }
+    .break-inside {
+      break-inside: avoid;
+    }
+  }
+}

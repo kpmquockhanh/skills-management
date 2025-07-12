@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  my_job:
+    name: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into remote server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            export NVM_DIR=~/.nvm
+            source ~/.nvm/nvm.sh
+            cd multiple-tool-vue3
+            git checkout .
+            git pull origin main
+            node --version
+            yarn install
+            yarn build

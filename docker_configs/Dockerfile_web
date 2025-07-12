@@ -1,0 +1,18 @@
+FROM node:24
+
+WORKDIR /app
+
+# Enable Yarn (via Corepack)
+RUN corepack enable
+
+# Copy package files and install dependencies
+COPY .yarnrc.yml .yarn ./
+COPY package.json yarn.lock ./
+RUN yarn install
+
+# Copy the rest of the app
+COPY . .
+
+EXPOSE 5173
+CMD ["yarn", "dev"]
+  
