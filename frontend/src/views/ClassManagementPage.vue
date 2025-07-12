@@ -457,7 +457,7 @@ onMounted(async () => {
                     <div v-if="skillTree.structure?.roots" class="space-y-2">
                       <div v-for="(rootNode, rootIndex) in skillTree.structure.roots" :key="`root-${rootIndex}`" class="space-y-2">
                         <!-- Root Skill -->
-                        <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <div class="flex items-center p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                           <div class="flex items-center gap-2 flex-1">
                             <div class="w-2 h-2 rounded-full" :style="`background-color: ${rootNode.skillId?.color || '#3B82F6'}`"></div>
                             <span class="text-sm font-medium text-gray-800">{{ rootNode.skillId?.name || 'Unknown Skill' }}</span>
@@ -468,20 +468,13 @@ onMounted(async () => {
                               Required
                             </span>
                           </div>
-                          <div class="flex items-center gap-2">
-                            <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                              <div class="bg-gradient-to-r from-green-400 to-blue-500 h-1.5 rounded-full transition-all duration-300" 
-                                   :style="`width: ${getSkillProgress(rootNode.skillId?.name || '')}%`"></div>
-                            </div>
-                            <span class="text-xs text-gray-500">{{ getSkillProgress(rootNode.skillId?.name || '') }}%</span>
-                          </div>
                         </div>
                         
                         <!-- Child Skills -->
                         <div v-if="rootNode.children && rootNode.children.length > 0" class="ml-4 space-y-2">
                           <div v-for="(childNode, childIndex) in rootNode.children" :key="`child-${rootIndex}-${childIndex}`" class="space-y-2">
                             <!-- Child Skill -->
-                            <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                               <div class="flex items-center gap-2 flex-1">
                                 <div class="w-2 h-2 rounded-full" :style="`background-color: ${childNode.skillId?.color || '#3B82F6'}`"></div>
                                 <span class="text-sm font-medium text-gray-800">{{ childNode.skillId?.name || 'Unknown Skill' }}</span>
@@ -492,19 +485,12 @@ onMounted(async () => {
                                   Required
                                 </span>
                               </div>
-                              <div class="flex items-center gap-2">
-                                <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                                  <div class="bg-gradient-to-r from-green-400 to-blue-500 h-1.5 rounded-full transition-all duration-300" 
-                                       :style="`width: ${getSkillProgress(childNode.skillId?.name || '')}%`"></div>
-                                </div>
-                                <span class="text-xs text-gray-500">{{ getSkillProgress(childNode.skillId?.name || '') }}%</span>
-                              </div>
                             </div>
                             
                             <!-- Grandchild Skills -->
                             <div v-if="childNode.children && childNode.children.length > 0" class="ml-4 space-y-2">
                               <div v-for="(grandchildNode, grandchildIndex) in childNode.children" :key="`grandchild-${rootIndex}-${childIndex}-${grandchildIndex}`">
-                                <div class="flex items-center justify-between p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                                   <div class="flex items-center gap-2 flex-1">
                                     <div class="w-2 h-2 rounded-full" :style="`background-color: ${grandchildNode.skillId?.color || '#3B82F6'}`"></div>
                                     <span class="text-sm font-medium text-gray-800">{{ grandchildNode.skillId?.name || 'Unknown Skill' }}</span>
@@ -514,13 +500,6 @@ onMounted(async () => {
                                     <span v-if="grandchildNode.properties?.required" class="px-2 py-1 bg-red-100 text-red-600 rounded-full text-xs">
                                       Required
                                     </span>
-                                  </div>
-                                  <div class="flex items-center gap-2">
-                                    <div class="w-16 bg-gray-200 rounded-full h-1.5">
-                                      <div class="bg-gradient-to-r from-green-400 to-blue-500 h-1.5 rounded-full transition-all duration-300" 
-                                           :style="`width: ${getSkillProgress(grandchildNode.skillId?.name || '')}%`"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500">{{ getSkillProgress(grandchildNode.skillId?.name || '') }}%</span>
                                   </div>
                                 </div>
                               </div>

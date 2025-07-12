@@ -11,6 +11,8 @@ import {
   getClassesBySkillTree,
   getClassesByTeacher,
   getClassesByStudent,
+  assignTeacherToClass,
+  removeTeacherFromClass,
 } from '../../controllers/class/class.controller.js';
 import { auth } from '../../middlewares/index.js';
 import { can } from '../../middlewares/auth/check-permission.js';
@@ -35,5 +37,9 @@ router.delete('/:classId', auth, can('permissions'), deleteClass);
 router.post('/:classId/enroll', auth, enrollStudent);
 router.delete('/:classId/students/:userId', auth, removeStudent);
 router.put('/:classId/students/:userId/progress', auth, updateStudentProgress);
+
+// Teacher assignment routes
+router.post('/:classId/teachers', auth, can('permissions'), assignTeacherToClass);
+router.delete('/:classId/teachers/:teacherId', auth, can('permissions'), removeTeacherFromClass);
 
 export default router; 

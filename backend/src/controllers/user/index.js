@@ -20,6 +20,7 @@ export { default as deleteUser } from './delete-user.js';
 export {
   getAllUsers,
   getUserById,
+  createUser,
   updateUser,
   deleteUser as deleteUserManagement,
   getAllClasses,

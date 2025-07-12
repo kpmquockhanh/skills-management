@@ -58,6 +58,23 @@ services:
     networks:
       - sm
 
+  mongo-express:
+    image: mongo-express:1.0.0-alpha.4
+    container_name: sm-mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: sm-mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    networks:
+      - sm
+    depends_on:
+      - mongodb
+
   rabbitmq:
     image: rabbitmq:3.8-management
     container_name: sm-rabbitmq

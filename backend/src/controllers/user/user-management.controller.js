@@ -2,6 +2,7 @@ import pick from 'lodash/pick.js';
 import { User, Class } from '../../models/index.js';
 import { errorHelper, getText, logger } from '../../utils/index.js';
 import { validateGetListUsers } from '../../validators/role_permission.validator.js';
+import bcrypt from 'bcryptjs';
 
 export const getAllUsers = async (req, res) => {
   const { error } = validateGetListUsers(req.query);
@@ -80,6 +81,95 @@ export const getAllUsers = async (req, res) => {
   } catch (err) {
     logger('00093', req.user._id, getText('en', '00093'), 'Error', req);
     return res.status(500).json(errorHelper('00093', req, err.message));
+  }
+};
+
+export const createUser = async (req, res) => {
+  try {
+    const {
+      name,
+      email,
+      username,
+      password,
+      type = 'user',
+      language = 'en',
+      gender,
+      isActivated = true,
+      isVerified = true,
+      isPremium = false
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !username || !password) {
+      return res.status(400).json(errorHelper('00108', req, 'Missing required fields'));
+    }
+
+    // Check if email already exists
+    const existingEmail = await User.findOne({ email: email.toLowerCase() });
+    if (existingEmail) {
+      return res.status(400).json(errorHelper('00109', req, 'Email already exists'));
+    }
+
+    // Check if username already exists
+    const existingUsername = await User.findOne({ username: username.toLowerCase() });
+    if (existingUsername) {
+      return res.status(400).json(errorHelper('00110', req, 'Username already exists'));
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create new user
+    const newUser = new User({
+      name,
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
+      password: hashedPassword,
+      type,
+      language,
+      gender,
+      isActivated,
+      isVerified,
+      isPremium,
+      platform: 'Web', // Default for admin-created users
+      deviceId: 'admin-created', // Default for admin-created users
+      timezone: 0 // Default timezone
+    });
+
+    await newUser.save();
+
+    // Populate the user with roles and permissions
+    const populatedUser = await User.findById(newUser._id)
+      .populate('roles')
+      .populate('permissions');
+
+    logger('00111', req.user._id, getText('en', '00111'), 'Info', req);
+    return res.status(201).json({
+      resultMessage: { en: getText('en', '00111'), tr: getText('tr', '00111') },
+      resultCode: '00111',
+      user: {
+        _id: populatedUser._id,
+        name: populatedUser.name,
+        email: populatedUser.email,
+        username: populatedUser.username,
+        type: populatedUser.type,
+        language: populatedUser.language,
+        isActivated: populatedUser.isActivated,
+        isVerified: populatedUser.isVerified,
+        isPremium: populatedUser.isPremium,
+        gender: populatedUser.gender,
+        photoUrl: populatedUser.photo?.src || null,
+        roles: populatedUser.roles,
+        permissions: populatedUser.permissions,
+        createdAt: populatedUser.createdAt,
+        updatedAt: populatedUser.updatedAt,
+        lastLogin: populatedUser.lastLogin
+      }
+    });
+  } catch (err) {
+    logger('00112', req.user._id, getText('en', '00112'), 'Error', req);
+    return res.status(500).json(errorHelper('00112', req, err.message));
   }
 };
 
@@ -260,18 +350,27 @@ export const assignUserToClass = async (req, res) => {
       return res.status(404).json(errorHelper('00103', req, 'Class not found'));
     }
 
-    // For now, we'll add a reference to the class in the user model
-    // You might want to create a separate UserClass model for many-to-many relationship
     if (action === 'assign') {
-      // Add class to user's classes array (you'll need to add this field to user model)
+      // Check if class is full
+      if (classData.enrolledStudents >= classData.maxStudents) {
+        return res.status(400).json(errorHelper('00107', req, 'Class is full'));
+      }
+
+      // Add class to user's classes array
       await User.findByIdAndUpdate(userId, {
         $addToSet: { classes: classId }
       });
+
+      // Add user to class's students array using the class method
+      await classData.addStudent(userId, 'enrolled');
     } else if (action === 'remove') {
       // Remove class from user's classes array
       await User.findByIdAndUpdate(userId, {
         $pull: { classes: classId }
       });
+
+      // Remove user from class's students array using the class method
+      await classData.removeStudent(userId);
     }
 
     logger('00104', req.user._id, getText('en', '00104'), 'Info', req);
@@ -302,8 +401,23 @@ export const getUserClasses = async (req, res) => {
             select: 'name email photoUrl'
           },
           {
-            path: 'skills.skill',
-            select: 'name description category level type icon color'
+            path: 'skillTrees.skillTree',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' },
+              {
+                path: 'structure.roots.skillId',
+                select: 'name description category level type icon color'
+              },
+              {
+                path: 'structure.roots.children.skillId',
+                select: 'name description category level type icon color'
+              },
+              {
+                path: 'structure.roots.children.children.skillId',
+                select: 'name description category level type icon color'
+              }
+            ]
           },
           {
             path: 'thumbnail',
@@ -328,7 +442,7 @@ export const getUserClasses = async (req, res) => {
         thumbnailUrl: cls.thumbnail?.url || cls.thumbnailUrl,
         createdBy: cls.createdBy,
         teachers: cls.teachers,
-        skills: cls.skills,
+        skillTrees: cls.skillTrees,
         enrolledStudents: cls.enrolledStudents,
         maxStudents: cls.maxStudents,
         createdAt: cls.createdAt,

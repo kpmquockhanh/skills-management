@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserManagement, type UserManagementUser, type Class } from '@/stores/userManagement'
 import { useUser } from '@/stores/user'
 import { useToast } from 'vue-toastification'
@@ -26,6 +27,7 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 
 dayjs.extend(relativeTime)
 
+const router = useRouter()
 const userManagement = useUserManagement()
 const userStore = useUser()
 const toast = useToast()
@@ -45,12 +47,12 @@ const isEditing = ref(false)
 const editForm = ref({
   name: '',
   username: '',
+  email: '',
+  password: '',
   type: 'user',
   language: 'en',
   gender: '',
-  isActivated: true,
-  isVerified: true,
-  isPremium: false
+  isActivated: true
 })
 
 // Class assignment
@@ -122,12 +124,12 @@ const openUserModal = (user?: UserManagementUser) => {
     editForm.value = {
       name: user.name,
       username: user.username,
+      email: user.email,
+      password: '',
       type: user.type,
       language: user.language,
       gender: user.gender || '',
-      isActivated: user.isActivated,
-      isVerified: user.isVerified,
-      isPremium: user.isPremium
+      isActivated: user.isActivated
     }
   } else {
     selectedUser.value = null
@@ -135,12 +137,12 @@ const openUserModal = (user?: UserManagementUser) => {
     editForm.value = {
       name: '',
       username: '',
+      email: '',
+      password: '',
       type: 'user',
       language: 'en',
       gender: '',
-      isActivated: true,
-      isVerified: true,
-      isPremium: false
+      isActivated: true
     }
   }
   showUserModal.value = true
@@ -164,9 +166,30 @@ const saveUser = async () => {
       await userManagement.updateUser(selectedUser.value._id, editForm.value)
       toast.success('User updated successfully')
     } else {
-      // Create new user - you'll need to implement this
-      toast.error('Create user functionality not implemented yet')
-      return
+      // Create new user
+      const newUserData = {
+        name: editForm.value.name,
+        username: editForm.value.username,
+        email: editForm.value.email,
+        password: editForm.value.password,
+        type: editForm.value.type,
+        language: editForm.value.language,
+        gender: editForm.value.gender,
+        isActivated: editForm.value.isActivated,
+        isVerified: false, // Default to false for new users
+        isPremium: false, // Default to false for new users
+        photoUrl: '',
+        platform: 'web',
+        timezone: 0,
+        deviceId: '',
+        memoryDate: new Date().toISOString(),
+        isOnline: false,
+        roles: [],
+        permissions: []
+      }
+      
+      await userManagement.createUser(newUserData)
+      toast.success('User created successfully')
     }
     showUserModal.value = false
     await loadUsers()
@@ -355,8 +378,8 @@ onMounted(() => {
             <option value="">All Types</option>
             <option value="admin">Admin</option>
             <option value="user">User</option>
-            <option value="reader">Reader</option>
-            <option value="creator">Creator</option>
+            <option value="teacher">Teacher</option>
+            <option value="kid">Kid</option>
           </select>
         </div>
         
@@ -433,8 +456,8 @@ onMounted(() => {
                   :class="{
                     'badge badge-primary': user.type === 'admin',
                     'badge badge-secondary': user.type === 'user',
-                    'badge badge-accent': user.type === 'creator',
-                    'badge badge-outline': user.type === 'reader'
+                    'badge badge-accent': user.type === 'teacher',
+                    'badge badge-outline': user.type === 'kid'
                   }"
                 >
                   {{ user.type }}
@@ -464,6 +487,13 @@ onMounted(() => {
               <td>
                 <div class="flex items-center gap-2">
                   <button
+                    @click="$router.push(`/user-management/${user._id}`)"
+                    class="btn btn-sm btn-ghost hover:bg-purple-50 hover:text-purple-600"
+                    title="View Details"
+                  >
+                    <PersonOutline class="w-4 h-4" />
+                  </button>
+                  <button
                     @click="openUserModal(user)"
                     class="btn btn-sm btn-ghost hover:bg-blue-50 hover:text-blue-600"
                     title="Edit User"
@@ -471,6 +501,7 @@ onMounted(() => {
                     <CreateOutline class="w-4 h-4" />
                   </button>
                   <button
+                    v-if="user.type === 'user' || user.type === 'kid'"
                     @click="openClassModal(user)"
                     class="btn btn-sm btn-ghost hover:bg-green-50 hover:text-green-600"
                     title="Manage Classes"
@@ -564,6 +595,36 @@ onMounted(() => {
             
             <div class="form-control">
               <label class="label">
+                <span class="label-text font-medium">Email</span>
+              </label>
+              <input
+                v-model="editForm.email"
+                type="email"
+                class="input input-bordered focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                :required="!isEditing"
+                :disabled="isEditing"
+                placeholder="user@example.com"
+              />
+            </div>
+            
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium">Password</span>
+                <span v-if="!isEditing" class="label-text-alt text-red-500">*</span>
+              </label>
+              <input
+                v-model="editForm.password"
+                type="password"
+                class="input input-bordered focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                :required="!isEditing"
+                :disabled="isEditing"
+                placeholder="Enter password"
+                minlength="6"
+              />
+            </div>
+            
+            <div class="form-control">
+              <label class="label">
                 <span class="label-text font-medium">Type</span>
               </label>
               <select
@@ -572,8 +633,8 @@ onMounted(() => {
               >
                 <option value="user">User</option>
                 <option value="admin">Admin</option>
-                <option value="reader">Reader</option>
-                <option value="creator">Creator</option>
+                <option value="teacher">Teacher</option>
+                <option value="kid">Kid</option>
               </select>
             </div>
             
@@ -614,24 +675,6 @@ onMounted(() => {
                 class="checkbox checkbox-primary"
               />
               <span class="label-text ml-2">Active</span>
-            </label>
-            
-            <label class="label cursor-pointer">
-              <input
-                v-model="editForm.isVerified"
-                type="checkbox"
-                class="checkbox checkbox-primary"
-              />
-              <span class="label-text ml-2">Verified</span>
-            </label>
-            
-            <label class="label cursor-pointer">
-              <input
-                v-model="editForm.isPremium"
-                type="checkbox"
-                class="checkbox checkbox-primary"
-              />
-              <span class="label-text ml-2">Premium</span>
             </label>
           </div>
         </form>
@@ -713,14 +756,7 @@ onMounted(() => {
                 </select>
               </div>
               
-              <button
-                @click="assignClass"
-                class="btn bg-gradient-to-r from-green-500 to-blue-500 border-0 hover:from-green-600 hover:to-blue-600 text-white w-full"
-                :disabled="!selectedClassId || userManagement.loading"
-              >
-                <span v-if="userManagement.loading" class="loading loading-spinner loading-sm"></span>
-                <span v-else>Assign to Class</span>
-              </button>
+
             </div>
           </div>
         </div>
@@ -731,6 +767,14 @@ onMounted(() => {
             class="btn btn-outline"
           >
             Close
+          </button>
+          <button
+            @click="assignClass"
+            class="btn bg-gradient-to-r from-green-500 to-blue-500 border-0 hover:from-green-600 hover:to-blue-600 text-white"
+            :disabled="!selectedClassId || userManagement.loading"
+          >
+            <span v-if="userManagement.loading" class="loading loading-spinner loading-sm"></span>
+            <span v-else>Assign</span>
           </button>
         </div>
       </div>

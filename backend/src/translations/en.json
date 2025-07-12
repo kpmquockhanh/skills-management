@@ -93,5 +93,11 @@
   "00103": "Class not found",
   "00104": "User class assignment updated successfully",
   "00105": "Failed to assign user to class",
-  "00106": "Failed to fetch user classes"
+  "00106": "Failed to fetch user classes",
+  "00107": "Class is full",
+  "00108": "Missing required fields",
+  "00109": "Email already exists",
+  "00110": "Username already exists",
+  "00111": "User created successfully",
+  "00112": "Failed to create user"
 }

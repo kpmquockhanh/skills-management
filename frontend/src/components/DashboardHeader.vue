@@ -27,7 +27,7 @@ const emit = defineEmits<{
 // Computed properties for user data
 const userName = computed(() => userStore.user?.name || 'User')
 const userEmail = computed(() => userStore.user?.email || '')
-const userPhoto = computed(() => getSrc(userStore.user?.photoUrl || '', true) || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face')
+const userPhoto = computed(() => getSrc(userStore.user?.photoUrl, true))
 const userType = computed(() => {
   if (userStore.user?.type === 'admin') return 'Admin'
   if (userStore.user?.type === 'user') return 'Member'
@@ -37,7 +37,7 @@ const isOnline = computed(() => userStore.user?.isOnline || false)
 </script>
 
 <template>
-  <div class="w-full navbar bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100">
+  <div class="w-full navbar bg-white/80 backdrop-blur-md shadow-sm border-b border-gray-100 relative z-50">
     <div class="flex-none lg:hidden">
       <label @click="toggleSidebar" class="btn btn-square btn-ghost hover:bg-gray-100 cursor-pointer">
         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="inline-block w-6 h-6 stroke-current">
@@ -60,7 +60,7 @@ const isOnline = computed(() => userStore.user?.isOnline || false)
             <div v-else class="absolute -bottom-1 -right-1 w-3 h-3 bg-gray-400 rounded-full border-2 border-white"></div>
           </div>
         </div>
-        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-lg bg-white rounded-xl border border-gray-100 w-52">
+        <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[9999] p-2 shadow-lg bg-white rounded-xl border border-gray-100 w-52">
           <li class="border-b border-gray-100 py-2">
             <div class="flex flex-col p-">
               <span class="font-semibold text-gray-800">{{ userName }}</span>
@@ -75,4 +75,12 @@ const isOnline = computed(() => userStore.user?.isOnline || false)
       </div>
     </div>
   </div>
-</template> 
+</template>
+
+<style scoped>
+/* Ensure dropdown breaks out of drawer stacking context */
+.dropdown .dropdown-content {
+  position: fixed !important;
+  z-index: 9999 !important;
+}
+</style> 

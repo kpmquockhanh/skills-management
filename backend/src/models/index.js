@@ -13,6 +13,7 @@ import CommentModel from './comment.js';
 import classModel from './class.js';
 import skillModel from './skill.js';
 import skillTreeModel from './skillTree.js';
+import userSkillRatingModel from './userSkillRating.js';
 
 export const User = userModel;
 export const Token = tokenModel;
@@ -28,5 +29,6 @@ export const Permission = PermissionModel;
 export const Class = classModel;
 export const Skill = skillModel;
 export const SkillTree = skillTreeModel;
+export const UserSkillRating = userSkillRatingModel;
 
 export const Comment = CommentModel;

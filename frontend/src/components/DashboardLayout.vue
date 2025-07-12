@@ -30,7 +30,7 @@ const expandedItems = ref<string[]>([])
 // Computed properties for user data
 const userName = computed(() => userStore.user?.name || 'User')
 const userEmail = computed(() => userStore.user?.email || '')
-const userPhoto = computed(() => getSrc(userStore.user?.photoUrl || '', true) || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face')
+const userPhoto = computed(() => getSrc(userStore.user?.photoUrl, true))
 const userType = computed(() => {
   if (userStore.user?.type === 'admin') return 'Admin'
   if (userStore.user?.type === 'user') return 'Member'
@@ -262,19 +262,6 @@ if (route.path === '/settings') {
           
           <!-- Divider -->
           <div class="my-6 border-t border-gray-200"></div>
-          
-          <!-- Quick Actions -->
-          <div class="space-y-3">
-            <h3 class="font-semibold text-sm text-gray-600 uppercase tracking-wide">Quick Actions</h3>
-            <button class="btn btn-primary btn-sm w-full bg-gradient-to-r from-blue-500 to-purple-500 border-0 hover:from-blue-600 hover:to-purple-600 shadow-lg">
-              <AddOutline class="w-4 h-4" />
-              New Project
-            </button>
-            <button class="btn btn-outline btn-sm w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300">
-              <EyeOutline class="w-4 h-4" />
-              View Analytics
-            </button>
-          </div>
           
           <!-- User Info -->
           <div class="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">

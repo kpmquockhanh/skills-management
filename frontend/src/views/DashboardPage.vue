@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import DashboardLayout from '@/components/DashboardLayout.vue'
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
+import { useSkillRating } from '@/stores/skillRating'
 import { 
   BookOutline, 
   TrophyOutline, 
@@ -9,23 +11,31 @@ import {
   CheckmarkCircleOutline,
   PlayCircleOutline,
   DocumentTextOutline,
-  PeopleOutline
+  PeopleOutline,
+  StarOutline
 } from '@vicons/ionicons5'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+
+dayjs.extend(relativeTime)
+
+const authStore = useAuthStore()
+const skillRating = useSkillRating()
 
 const stats = ref([
   { 
     title: 'Skills Learned', 
-    value: '24', 
-    change: '+3 this month', 
+    value: '0', 
+    change: '+0 this month', 
     icon: BookOutline,
     color: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-600'
   },
   { 
-    title: 'Certificates', 
-    value: '8', 
-    change: '+2 this month', 
+    title: 'Completed Skills', 
+    value: '0', 
+    change: '+0 this month', 
     icon: TrophyOutline,
     color: 'from-green-500 to-green-600',
     bgColor: 'bg-green-50',
@@ -33,17 +43,17 @@ const stats = ref([
   },
   { 
     title: 'Study Hours', 
-    value: '156', 
-    change: '+12h this week', 
+    value: '0', 
+    change: '+0h this week', 
     icon: TimeOutline,
     color: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-600'
   },
   { 
-    title: 'Progress Rate', 
-    value: '87%', 
-    change: '+5% this month', 
+    title: 'Avg Rating', 
+    value: '0/10', 
+    change: '+0 this month', 
     icon: TrendingUpOutline,
     color: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50',
@@ -51,52 +61,114 @@ const stats = ref([
   }
 ])
 
-const recentActivities = ref([
-  { 
-    action: 'Completed React Advanced Course', 
-    user: 'John Doe', 
-    time: '2 hours ago', 
-    type: 'certificate', 
-    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
-    skill: 'React',
-    progress: 100
-  },
-  { 
-    action: 'Started Node.js Backend Course', 
-    user: 'Jane Smith', 
-    time: '4 hours ago', 
-    type: 'learning', 
-    avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face',
-    skill: 'Node.js',
-    progress: 35
-  },
-  { 
-    action: 'Achieved Python Certification', 
-    user: 'Mike Johnson', 
-    time: '1 day ago', 
-    type: 'certificate', 
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face',
-    skill: 'Python',
-    progress: 100
-  },
-  { 
-    action: 'Completed UI/UX Design Module', 
-    user: 'Sarah Wilson', 
-    time: '2 days ago', 
-    type: 'learning', 
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face',
-    skill: 'UI/UX',
-    progress: 75
-  }
-])
+const recentActivities = ref([])
 
-const skillProgress = ref([
-  { name: 'JavaScript', progress: 95, level: 'Advanced', color: 'from-yellow-400 to-orange-500' },
-  { name: 'React', progress: 88, level: 'Advanced', color: 'from-blue-400 to-cyan-500' },
-  { name: 'Node.js', progress: 75, level: 'Intermediate', color: 'from-green-400 to-emerald-500' },
-  { name: 'Python', progress: 65, level: 'Intermediate', color: 'from-blue-500 to-indigo-600' },
-  { name: 'UI/UX Design', progress: 45, level: 'Beginner', color: 'from-purple-400 to-pink-500' }
-])
+// Computed properties for real data
+const completedSkills = computed(() => {
+  return skillRating.completedRatings || []
+})
+
+const allSkills = computed(() => {
+  return skillRating.ratings || []
+})
+
+const updateStats = () => {
+  if (skillRating.stats) {
+    stats.value[0].value = skillRating.stats.totalSkills?.toString() || '0'
+    stats.value[1].value = skillRating.stats.completedSkills?.toString() || '0'
+    stats.value[2].value = Math.round(skillRating.stats.totalTimeSpent / 60).toString() || '0'
+    stats.value[3].value = `${Math.round(skillRating.stats.averageRating * 10) / 10}/10`
+  }
+}
+
+const loadUserSkills = async () => {
+  if (!authStore.user?._id) return
+  
+  try {
+    await skillRating.fetchUserRatings(authStore.user._id, {
+      page: 1,
+      limit: 50
+    })
+    updateStats()
+    updateRecentActivities()
+  } catch (error) {
+    console.error('Failed to load user skills:', error)
+  }
+}
+
+const updateRecentActivities = () => {
+  const activities = []
+  
+  // Add completed skills
+  completedSkills.value.forEach(rating => {
+    activities.push({
+      action: `Completed ${rating.skill.name}`,
+      user: authStore.user?.name || 'You',
+      time: dayjs(rating.updatedAt).fromNow(),
+      type: 'certificate',
+      avatar: authStore.user?.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+      skill: rating.skill.name,
+      progress: rating.progress,
+      rating: rating.rating,
+      masteryLevel: rating.masteryLevel
+    })
+  })
+  
+  // Add active skills with high progress
+  allSkills.value
+    .filter(rating => rating.status === 'active' && rating.progress >= 50)
+    .forEach(rating => {
+      activities.push({
+        action: `Progress on ${rating.skill.name}`,
+        user: authStore.user?.name || 'You',
+        time: dayjs(rating.updatedAt).fromNow(),
+        type: 'learning',
+        avatar: authStore.user?.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+        skill: rating.skill.name,
+        progress: rating.progress,
+        rating: rating.rating,
+        masteryLevel: rating.masteryLevel
+      })
+    })
+  
+  // Sort by most recent and take top 6
+  activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+  recentActivities.value = activities.slice(0, 6)
+}
+
+// Lifecycle
+onMounted(() => {
+  loadUserSkills()
+})
+
+const skillProgress = computed(() => {
+  return allSkills.value
+    .filter(rating => rating.status === 'active' || rating.status === 'completed')
+    .map(rating => ({
+      name: rating.skill.name,
+      progress: rating.progress,
+      level: rating.masteryLevel,
+      color: getSkillColor(rating.skill.name),
+      rating: rating.rating
+    }))
+    .sort((a, b) => b.progress - a.progress)
+    .slice(0, 5)
+})
+
+const getSkillColor = (skillName: string) => {
+  const colors = [
+    'from-yellow-400 to-orange-500',
+    'from-blue-400 to-cyan-500', 
+    'from-green-400 to-emerald-500',
+    'from-purple-400 to-pink-500',
+    'from-indigo-400 to-purple-500',
+    'from-red-400 to-pink-500',
+    'from-teal-400 to-cyan-500',
+    'from-orange-400 to-red-500'
+  ]
+  const index = skillName.length % colors.length
+  return colors[index]
+}
 
 const getActivityIcon = (type: string) => {
   const icons = {
@@ -117,13 +189,14 @@ const getActivityColor = (type: string) => {
   }
   return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-600'
 }
+
 </script>
 
 <template>
   <div>
     <!-- Welcome Section -->
     <div class="mb-6 sm:mb-8">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome back, John! 👋</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome back, {{ authStore.user?.name || 'User' }}! 👋</h1>
       <p class="text-gray-600 text-sm sm:text-base">Track your skills progress and continue learning.</p>
     </div>
 
@@ -156,28 +229,51 @@ const getActivityColor = (type: string) => {
             <p class="text-gray-600 text-sm mt-1">Your latest skill development progress</p>
           </div>
           <div class="p-4 sm:p-6">
-            <div class="space-y-3 sm:space-y-4">
-              <div v-for="activity in recentActivities" :key="activity.time" 
-                   class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-colors">
-                <div class="avatar">
-                  <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full ring-2 ring-white">
-                    <img :src="activity.avatar" :alt="activity.user" />
+            <!-- Empty State -->
+            <div v-if="recentActivities.length === 0" class="text-center py-8">
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full">
+                <PlayCircleOutline class="w-8 h-8 text-gray-400" />
+              </div>
+              <h3 class="text-lg font-semibold text-gray-700 mb-2">No Recent Activities</h3>
+             
+            </div>
+            
+            <!-- Activities List -->
+            <div v-else>
+              <div class="space-y-3 sm:space-y-4">
+                <div v-for="activity in recentActivities" :key="`${activity.skill}-${activity.time}`" 
+                     class="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl hover:bg-gray-100 transition-colors">
+                  <div class="avatar">
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-full ring-2 ring-white">
+                      <img :src="activity.avatar" :alt="activity.user" />
+                    </div>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ activity.action }}</p>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-xs sm:text-sm text-gray-600">{{ activity.skill }}</span>
+                      <span class="text-xs text-gray-500">•</span>
+                      <span class="text-xs sm:text-sm text-gray-600">{{ activity.progress }}%</span>
+                      <span class="text-xs text-gray-500">•</span>
+                      <div class="flex items-center gap-1">
+                        <StarOutline class="w-3 h-3 text-yellow-500" />
+                        <span class="text-xs text-gray-600">{{ activity.rating }}/10</span>
+                      </div>
+                      <span v-if="activity.masteryLevel" class="text-xs text-gray-500">•</span>
+                      <span v-if="activity.masteryLevel" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">{{ activity.masteryLevel }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 flex-shrink-0">
+                    <component :is="getActivityIcon(activity.type)" class="w-4 h-4 sm:w-5 sm:h-5" :class="getActivityColor(activity.type).split(' ')[1]" />
+                    <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">{{ activity.time }}</span>
                   </div>
                 </div>
-                <div class="flex-1 min-w-0">
-                  <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ activity.action }}</p>
-                  <p class="text-xs sm:text-sm text-gray-600">by {{ activity.user }} • {{ activity.skill }}</p>
-                </div>
-                <div class="flex items-center gap-2 flex-shrink-0">
-                  <component :is="getActivityIcon(activity.type)" class="w-4 h-4 sm:w-5 sm:h-5" :class="getActivityColor(activity.type).split(' ')[1]" />
-                  <span class="text-xs sm:text-sm text-gray-500 hidden sm:inline">{{ activity.time }}</span>
-                </div>
               </div>
-            </div>
-            <div class="mt-4 sm:mt-6">
-              <button class="btn btn-outline w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300 text-sm">
-                View All Activities
-              </button>
+              <div class="mt-4 sm:mt-6">
+                <button class="btn btn-outline w-full border-gray-200 hover:bg-gray-50 hover:border-blue-300 text-sm">
+                  View All Activities
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -213,17 +309,28 @@ const getActivityColor = (type: string) => {
             <h2 class="text-lg sm:text-xl font-bold text-gray-800">Skill Progress</h2>
             <p class="text-gray-600 text-sm mt-1">Your current skill levels</p>
           </div>
-          <div class="p-4 sm:p-6 space-y-4 sm:space-y-6">
-            <div v-for="skill in skillProgress" :key="skill.name" class="space-y-2">
-              <div class="flex justify-between items-center">
-                <span class="text-sm font-medium text-gray-700">{{ skill.name }}</span>
-                <div class="flex items-center gap-2">
-                  <span class="text-xs text-gray-500">{{ skill.level }}</span>
-                  <span class="text-sm font-bold" :class="skill.color.includes('yellow') ? 'text-yellow-600' : skill.color.includes('blue') ? 'text-blue-600' : skill.color.includes('green') ? 'text-green-600' : skill.color.includes('purple') ? 'text-purple-600' : 'text-gray-600'">{{ skill.progress }}%</span>
-                </div>
+          <div class="p-4 sm:p-6">
+            <!-- Empty State -->
+            <div v-if="skillProgress.length === 0" class="text-center py-8">
+              <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full">
+                <BookOutline class="w-8 h-8 text-gray-400" />
               </div>
-              <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="h-2 rounded-full transition-all duration-300" :class="`bg-gradient-to-r ${skill.color}`" :style="`width: ${skill.progress}%`"></div>
+              <h3 class="text-lg font-semibold text-gray-700 mb-2">No Skills Yet</h3>
+            </div>
+            
+            <!-- Skills List -->
+            <div v-else class="space-y-4 sm:space-y-6">
+              <div v-for="skill in skillProgress" :key="skill.name" class="space-y-2">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-gray-700">{{ skill.name }}</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs text-gray-500">{{ skill.level }}</span>
+                    <span class="text-sm font-bold" :class="skill.color.includes('yellow') ? 'text-yellow-600' : skill.color.includes('blue') ? 'text-blue-600' : skill.color.includes('green') ? 'text-green-600' : skill.color.includes('purple') ? 'text-purple-600' : 'text-gray-600'">{{ skill.progress }}%</span>
+                  </div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2">
+                  <div class="h-2 rounded-full transition-all duration-300" :class="`bg-gradient-to-r ${skill.color}`" :style="`width: ${skill.progress}%`"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -301,5 +408,6 @@ const getActivityColor = (type: string) => {
         </div>
       </div>
     </div>
+
   </div>
 </template> 

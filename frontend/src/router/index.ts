@@ -136,6 +136,15 @@ const router = createRouter({
       }
     },
     {
+      path: '/user-management/:id',
+      name: 'user-details',
+      component: () => import('../views/UserDetailsPage.vue'),
+      meta: {
+        requiresAuth: true,
+        title: 'User Details'
+      }
+    },
+    {
       path: '/friends',
       name: 'friends',
       component: () => import('../views/FindFriendPage.vue')

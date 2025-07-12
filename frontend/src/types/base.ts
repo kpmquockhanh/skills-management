@@ -51,7 +51,7 @@ export type User = {
   _id: string,
   name: string,
   email: string,
-  type: string,
+  type: 'admin' | 'user' | 'teacher' | 'kid',
   createdAt: string,
   updatedAt: string,
   language: string,

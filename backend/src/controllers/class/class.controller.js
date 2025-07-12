@@ -708,4 +708,127 @@ export const getClassesByStudent = async (req, res) => {
     console.error('Error getting classes by student:', error);
     res.status(500).json(responseHelper(500, { error: error.message }));
   }
+};
+
+// Assign teacher to class
+export const assignTeacherToClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { teacherId } = req.body;
+
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json(responseHelper(404, { error: 'Class not found' }));
+    }
+
+    // Check if teacher is already assigned
+    if (classData.teachers.includes(teacherId)) {
+      return res.status(400).json(responseHelper(400, { error: 'Teacher is already assigned to this class' }));
+    }
+
+    // Add teacher to class
+    classData.teachers.push(teacherId);
+    await classData.save();
+
+    const updatedClass = await Class.findById(classId)
+      .populate('createdBy', 'name email photoUrl')
+      .populate('teachers', 'name email photoUrl')
+      .populate('students.user', 'name email photoUrl')
+      .populate({
+        path: 'skillTrees.skillTree',
+        populate: [
+          { path: 'createdBy', select: 'name email photoUrl' },
+          { path: 'thumbnail', select: 'url' },
+          {
+            path: 'structure.roots.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          },
+          {
+            path: 'structure.roots.children.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          },
+          {
+            path: 'structure.roots.children.children.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          }
+        ]
+      })
+      .populate('thumbnail', 'url')
+      .lean();
+
+    res.json(responseHelper(200, { class: updatedClass }));
+  } catch (error) {
+    console.error('Error assigning teacher to class:', error);
+    res.status(500).json(responseHelper(500, { error: error.message }));
+  }
+};
+
+// Remove teacher from class
+export const removeTeacherFromClass = async (req, res) => {
+  try {
+    const { classId, teacherId } = req.params;
+
+    const classData = await Class.findById(classId);
+    if (!classData) {
+      return res.status(404).json(responseHelper(404, { error: 'Class not found' }));
+    }
+
+    // Check if teacher is assigned to this class
+    if (!classData.teachers.includes(teacherId)) {
+      return res.status(400).json(responseHelper(400, { error: 'Teacher is not assigned to this class' }));
+    }
+
+    // Remove teacher from class
+    classData.teachers = classData.teachers.filter(id => id.toString() !== teacherId);
+    await classData.save();
+
+    const updatedClass = await Class.findById(classId)
+      .populate('createdBy', 'name email photoUrl')
+      .populate('teachers', 'name email photoUrl')
+      .populate('students.user', 'name email photoUrl')
+      .populate({
+        path: 'skillTrees.skillTree',
+        populate: [
+          { path: 'createdBy', select: 'name email photoUrl' },
+          { path: 'thumbnail', select: 'url' },
+          {
+            path: 'structure.roots.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          },
+          {
+            path: 'structure.roots.children.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          },
+          {
+            path: 'structure.roots.children.children.skillId',
+            populate: [
+              { path: 'createdBy', select: 'name email photoUrl' },
+              { path: 'thumbnail', select: 'url' }
+            ]
+          }
+        ]
+      })
+      .populate('thumbnail', 'url')
+      .lean();
+
+    res.json(responseHelper(200, { class: updatedClass }));
+  } catch (error) {
+    console.error('Error removing teacher from class:', error);
+    res.status(500).json(responseHelper(500, { error: error.message }));
+  }
 }; 

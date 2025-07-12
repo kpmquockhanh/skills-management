@@ -5,7 +5,7 @@ import type { User } from '@/types/base'
 
 export interface UserManagementUser extends User {
   username: string
-  type: string
+  type: 'admin' | 'user' | 'teacher' | 'kid'
   isActivated: boolean
   isVerified: boolean
   isPremium: boolean
@@ -96,6 +96,29 @@ export const useUserManagement = defineStore('userManagement', () => {
       return resp.user
     } catch (error) {
       console.error('Error fetching user:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Create new user
+  const createUser = async (userData: Omit<UserManagementUser, '_id' | 'createdAt' | 'updatedAt' | 'lastLogin'>) => {
+    loading.value = true
+    try {
+      const resp = await http.request('/v1/user-management', 'POST', {
+        body: userData
+      })
+      if (resp.error) {
+        throw new Error(resp.error)
+      }
+
+      // Add the new user to the list
+      users.value.unshift(resp.user)
+
+      return resp.user
+    } catch (error) {
+      console.error('Error creating user:', error)
       throw error
     } finally {
       loading.value = false
@@ -239,6 +262,7 @@ export const useUserManagement = defineStore('userManagement', () => {
     // Actions
     fetchUsers,
     fetchUserById,
+    createUser,
     updateUser,
     deleteUser,
     fetchClasses,

@@ -93,5 +93,11 @@
   "00103": "Không tìm thấy lớp học",
   "00104": "Cập nhật phân công lớp học thành công",
   "00105": "Không thể phân công người dùng vào lớp học",
-  "00106": "Không thể tải lớp học của người dùng"
+  "00106": "Không thể tải lớp học của người dùng",
+  "00107": "Lớp học đã đầy",
+  "00108": "Thiếu các trường bắt buộc",
+  "00109": "Email đã tồn tại",
+  "00110": "Tên người dùng đã tồn tại",
+  "00111": "Tạo người dùng thành công",
+  "00112": "Không thể tạo người dùng"
 }

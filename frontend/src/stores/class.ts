@@ -388,6 +388,62 @@ export const useClassStore = defineStore('class', () => {
     }
   }
 
+  // Assign teacher to class
+  const assignTeacherToClass = async (classId: string, teacherId: string) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const response = await request.request(`/v1/classes/${classId}/teachers`, 'POST', {
+        body: { teacherId }
+      })
+      const updatedClass = response.data?.class || response.class
+      
+      const index = classes.value.findIndex(cls => cls._id === classId)
+      if (index !== -1) {
+        classes.value[index] = updatedClass
+      }
+      
+      if (currentClass.value?._id === classId) {
+        currentClass.value = updatedClass
+      }
+      
+      return updatedClass
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to assign teacher to class'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Remove teacher from class
+  const removeTeacherFromClass = async (classId: string, teacherId: string) => {
+    try {
+      loading.value = true
+      error.value = null
+      
+      const response = await request.request(`/v1/classes/${classId}/teachers/${teacherId}`, 'DELETE', {})
+      const updatedClass = response.data?.class || response.class
+      
+      const index = classes.value.findIndex(cls => cls._id === classId)
+      if (index !== -1) {
+        classes.value[index] = updatedClass
+      }
+      
+      if (currentClass.value?._id === classId) {
+        currentClass.value = updatedClass
+      }
+      
+      return updatedClass
+    } catch (err: any) {
+      error.value = err.response?.data?.message || 'Failed to remove teacher from class'
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   // Clear error
   const clearError = () => {
     error.value = null
@@ -425,6 +481,8 @@ export const useClassStore = defineStore('class', () => {
     getClassesBySkillTree,
     getClassesByTeacher,
     getClassesByStudent,
+    assignTeacherToClass,
+    removeTeacherFromClass,
     clearError,
     reset
   }

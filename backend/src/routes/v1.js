@@ -12,6 +12,7 @@ import userManagementRoute from './v1/user-management.route.js';
 import classRoute from './v1/class.route.js';
 import skillRoute from './v1/skill.route.js';
 import skillTreeRoute from './v1/skillTree.route.js';
+import skillRatingRoute from './v1/skillRating.route.js';
 import commentRoute from './v1/comments.route.js';
 import configRoute from './v1/config.route.js';
 
@@ -33,6 +34,7 @@ router.use('/user-management', userManagementRoute);
 router.use('/classes', classRoute);
 router.use('/skills', skillRoute);
 router.use('/skill-trees', skillTreeRoute);
+router.use('/skill-ratings', skillRatingRoute);
 router.use('/comments', commentRoute);
 router.use('/config', configRoute);
 

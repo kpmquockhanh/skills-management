@@ -24,7 +24,7 @@ const userSchema = new Schema(
         you can control the authority of users with the help of this field. */
     type: {
       type: String,
-      enum: ['admin', 'user', 'reader', 'creator'],
+      enum: ['admin', 'user', 'kid', 'teacher'],
       default: 'user',
     },
     language: {
