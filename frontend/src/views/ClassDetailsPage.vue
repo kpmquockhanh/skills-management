@@ -121,17 +121,17 @@
                     Class Identity
                   </h3>
                   <div class="space-y-3">
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Name</span>
                       <p class="text-gray-900 font-medium mt-1">{{ classData.name }}</p>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Code</span>
                       <p class="text-gray-900 font-mono font-medium mt-1">{{ classData.code }}</p>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Type</span>
-                      <span class="ml-2 inline-flex px-3 py-1 text-sm font-semibold rounded-full bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 shadow-sm mt-1">
+                      <span class="inline-flex px-2 py-1 text-sm font-semibold rounded bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 shadow-sm mt-1">
                         {{ classData.type }}
                       </span>
                     </div>
@@ -147,10 +147,10 @@
                     Class Details
                   </h3>
                   <div class="space-y-3">
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Level</span>
                       <span
-                        class="ml-2 inline-flex px-3 py-1 text-sm font-semibold rounded-full shadow-sm mt-1"
+                        class="inline-flex px-2 py-1 text-sm font-semibold rounded shadow-sm mt-1"
                         :class="{
                           'bg-gradient-to-r from-green-100 to-green-200 text-green-800': classData.level === 'beginner',
                           'bg-gradient-to-r from-yellow-100 to-yellow-200 text-yellow-800': classData.level === 'intermediate',
@@ -161,11 +161,11 @@
                         {{ classData.level }}
                       </span>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Duration</span>
                       <p class="text-gray-900 font-medium mt-1">{{ classData.duration || 'N/A' }} hours</p>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Capacity</span>
                       <p class="text-gray-900 font-medium mt-1">{{ classData.enrolledStudents }}/{{ classData.maxStudents }} students</p>
                     </div>
@@ -181,15 +181,15 @@
                     Quick Stats
                   </h3>
                   <div class="space-y-3">
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Skill Trees</span>
                       <p class="text-gray-900 font-medium mt-1">{{ classData.skillTrees.length }} assigned</p>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Teachers</span>
                       <p class="text-gray-900 font-medium mt-1">{{ classData.teachers?.length || 0 }} assigned</p>
                     </div>
-                    <div class="bg-gray-50 rounded-lg p-3">
+                    <div class="bg-gray-50 rounded-lg p-3 flex flex-col">
                       <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">Created</span>
                       <p class="text-gray-900 font-medium mt-1">{{ formatDate(classData.createdAt) }}</p>
                     </div>

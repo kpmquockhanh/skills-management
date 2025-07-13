@@ -565,7 +565,7 @@ onMounted(() => {
           </div>
 
           <!-- Class Assignments -->
-          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden">
+          <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 overflow-hidden" v-if="user.type === 'user' || user.type === 'kid'">
             <div class="p-6 border-b border-gray-200/50">
               <div class="flex items-center justify-between">
                 <div>

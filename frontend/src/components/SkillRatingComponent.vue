@@ -506,7 +506,7 @@ onMounted(() => {
     <div class="space-y-6">
       <!-- Header -->
       <div class="bg-white rounded-xl  border-b p-6">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between lg:gap-2 gap-4">
           <div>
             <h2 class="text-2xl font-bold text-gray-900">Skill Ratings</h2>
             <p class="text-gray-600 text-sm mt-1">Manage and track skill ratings for {{ userName }}</p>

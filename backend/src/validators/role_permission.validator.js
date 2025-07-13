@@ -38,6 +38,9 @@ export function validateGetListUsers(query) {
   const schema = Joi.object({
     page: Joi.number(),
     limit: Joi.number(),
+    search: Joi.string(),
+    type: Joi.string(),
+    isActivated: Joi.boolean(),
   })
   return schema.validate(query)
 }
