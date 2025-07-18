@@ -4,13 +4,12 @@ import {
   SettingsOutline, 
   AddOutline, 
   TrashOutline, 
-  EnterOutline,
-  HomeOutline,
   ChatbubbleEllipsesOutline
 } from '@vicons/ionicons5'
 import { useRoom } from '@/stores/room'
 import { useToast } from 'vue-toastification'
 import { getSrc } from '@/utils'
+import { useClassStore } from '@/stores/class'
 
 const room = useRoom()
 const toast = useToast()
@@ -23,6 +22,10 @@ const name = ref('')
 const description = ref('')
 const isCreating = ref(false)
 
+const classStore = useClassStore()
+const selectedClass = ref<string | null>(null)
+const classLoading = ref(false)
+
 const onJoinRoom = (roomId: string) => {
   room.joinRoom(roomId)
 }
@@ -31,8 +34,18 @@ const onEditRoom = (roomId: string) => {
   room.editRoom(roomId)
 }
 
-const onShowModal = () => {
+const fetchClassesForModal = async () => {
+  classLoading.value = true
+  try {
+    await classStore.fetchClasses({ status: 'active', limit: 100 })
+  } finally {
+    classLoading.value = false
+  }
+}
+
+const onShowModal = async () => {
   if (!createRoomModal.value) return
+  await fetchClassesForModal()
   createRoomModal.value.showModal()
 }
 
@@ -41,6 +54,7 @@ const onCloseModal = () => {
   createRoomModal.value.close()
   name.value = ''
   description.value = ''
+  selectedClass.value = null
 }
 
 const onCreate = async () => {
@@ -49,7 +63,8 @@ const onCreate = async () => {
     isCreating.value = true
     await room.createRoom({
       name: name.value.trim(),
-      description: description.value.trim()
+      description: description.value.trim(),
+      class: selectedClass.value || undefined
     })
     toast.success('Room created successfully!')
     onCloseModal()
@@ -70,8 +85,12 @@ const confirmDelete = async () => {
   if (!roomToDelete.value) return
   try {
     isDeleting.value = true
-    await room.deleteRoom(roomToDelete.value)
-    toast.success('Room deleted successfully!')
+    const res = await room.deleteRoom(roomToDelete.value)
+    if (res && !res.error) {
+      toast.success('Room deleted successfully!')
+    } else {
+      toast.error('Failed to delete room')
+    }
     closeDeleteModal()
   } catch (error) {
     toast.error('Failed to delete room')
@@ -133,7 +152,7 @@ onMounted(async () => {
       <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <!-- Empty State -->
         <div v-if="!rooms.length && !loading" class="flex justify-center items-center min-h-[400px]">
-          <div class="text-center p-8 rounded-2xl bg-gray-50 shadow-sm">
+          <div class="text-center">
             <div class="flex justify-center mb-4">
               <div class="w-16 h-16 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center">
                 <ChatbubbleEllipsesOutline class="w-8 h-8 text-blue-600" />
@@ -183,12 +202,12 @@ onMounted(async () => {
             <div class="flex-1 min-w-0">
               <div class="flex items-center justify-between mb-1">
                 <h3 class="font-semibold text-gray-800 truncate">{{ r.name }}</h3>
-                <span class="text-xs text-gray-500">2h ago</span>
               </div>
               <p class="text-sm text-gray-600 truncate">{{ r.description }}</p>
-              <div class="flex items-center gap-2 mt-1">
+              <div class="flex items-center gap-2 mt-1" v-if="r.class">
                 <span class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Class Group</span>
-                <span class="text-xs text-gray-500">• 24 members</span>
+                <span v-if="r.class" class="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded-full">Class: {{ r.class.name }}</span>
+                <span class="text-xs text-gray-500">• {{ r.class.enrolledStudents }} member(s)</span>
               </div>
             </div>
             
@@ -264,6 +283,22 @@ onMounted(async () => {
                 placeholder="Describe what this class group is about..."
                 v-model="description"
               ></textarea>
+            </div>
+
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-medium text-gray-700">Assign to Class (optional, cannot change later)</span>
+              </label>
+              <select
+                class="select select-bordered w-full"
+                v-model="selectedClass"
+                :disabled="classLoading"
+              >
+                <option value="">No class (public room)</option>
+                <option v-for="cls in classStore.activeClasses" :key="cls._id" :value="cls._id">
+                  {{ cls.name }}
+                </option>
+              </select>
             </div>
           </div>
 

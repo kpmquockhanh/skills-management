@@ -14,20 +14,13 @@ import {
   BookOutline,
   CreateOutline,
   TrashOutline,
-  CheckmarkOutline,
-  CloseCircleOutline,
   TimeOutline,
   GlobeOutline,
-  SettingsOutline,
-  StatsChartOutline,
-  SchoolOutline,
   TrophyOutline,
   TrendingUpOutline,
-  PeopleOutline,
   AddOutline,
   CloseOutline,
-  SaveOutline,
-  CloseCircleOutline as CloseCircleOutlineIcon
+  SaveOutline
 } from '@vicons/ionicons5'
 import { getSrc } from '@/utils'
 import dayjs from 'dayjs'

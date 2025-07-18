@@ -3,28 +3,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { 
   BookOutline, 
-  TrophyOutline, 
   TrendingUpOutline, 
   TimeOutline,
-  CheckmarkCircleOutline,
-  PlayCircleOutline,
-  DocumentTextOutline,
   PeopleOutline,
   AddOutline,
-  SearchOutline,
-  FilterOutline,
   GridOutline,
   ListOutline,
-  StarOutline,
-  StarHalfOutline,
-  StarOutline as StarEmptyOutline,
   CreateOutline,
   TrashOutline,
-  SettingsOutline
 } from '@vicons/ionicons5'
 import { useClassStore, type Class } from '../stores/class'
 import { useSkillTreeStore } from '../stores/skillTree'
 import ClassModal from '@components/ClassModal.vue'
+import LeanFilters from '@components/LeanFilters.vue'
 
 // Router
 const router = useRouter()
@@ -38,10 +29,12 @@ const showModal = ref(false)
 const editingClass = ref<Class | null>(null)
 
 // Filters and search
-const searchQuery = ref('')
-const selectedCategory = ref('All')
-const selectedLevel = ref('All')
-const selectedStatus = ref('All')
+const filters = ref({
+  search: '',
+  category: '',
+  level: '',
+  status: ''
+})
 const viewMode = ref('grid') // 'grid' or 'list'
 
 // Skill tree state
@@ -49,23 +42,22 @@ const expandSkillTree = ref(new Set<string>())
 
 // Computed properties
 const categories = computed(() => {
-  const cats = ['All', ...new Set(classStore.classes.map(c => c.type))]
-  return cats
+  const cats = new Set(classStore.classes.map(c => c.type))
+  return Array.from(cats).sort()
 })
 
-const levels = ['All', 'beginner', 'intermediate', 'advanced', 'expert']
-const statuses = ['All', 'active', 'inactive', 'draft', 'archived']
+const levels = ['beginner', 'intermediate', 'advanced', 'expert']
+const statuses = ['active', 'inactive', 'draft', 'archived']
 
 const filteredClasses = computed(() => {
-  console.log('classStore.classes', classStore.classes)
   return classStore.classes.filter(cls => {
-    const matchesSearch = !searchQuery.value || 
-      cls.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      cls.description.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchesSearch = !filters.value.search || 
+      cls.name.toLowerCase().includes(filters.value.search.toLowerCase()) ||
+      cls.description.toLowerCase().includes(filters.value.search.toLowerCase())
     
-    const matchesCategory = selectedCategory.value === 'All' || cls.type === selectedCategory.value
-    const matchesLevel = selectedLevel.value === 'All' || cls.level === selectedLevel.value
-    const matchesStatus = selectedStatus.value === 'All' || cls.status === selectedStatus.value
+    const matchesCategory = !filters.value.category || cls.type === filters.value.category
+    const matchesLevel = !filters.value.level || cls.level === filters.value.level
+    const matchesStatus = !filters.value.status || cls.status === filters.value.status
     
     return matchesSearch && matchesCategory && matchesLevel && matchesStatus
   })
@@ -78,11 +70,6 @@ const toggleSkillTree = (category: string) => {
   } else {
     expandSkillTree.value.add(category)
   }
-}
-
-const getSkillProgress = (skillName: string) => {
-  // Mock progress calculation - you can implement actual logic here
-  return Math.floor(Math.random() * 100)
 }
 
 // Get skills count for a skill tree
@@ -159,7 +146,6 @@ onMounted(async () => {
       classStore.fetchClasses(),
       skillTreeStore.fetchSkillTrees()
     ])
-    console.log('classStore.classes', classStore.classes)
   } catch (error) {
     console.error('Error loading data:', error)
   }
@@ -185,67 +171,56 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- Search and Filters -->
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-6 sm:mb-8">
-      <div class="flex flex-col lg:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1 relative">
-          <SearchOutline class="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <input 
-            v-model="searchQuery"
-            type="text" 
-            placeholder="Search classes, descriptions, codes..." 
-            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-        
-        <!-- Filters -->
-        <div class="flex gap-3">
-          <select 
-            v-model="selectedCategory"
-            class="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option v-for="category in categories" :key="category" :value="category">
-              {{ category }}
-            </option>
-          </select>
-          
-          <select 
-            v-model="selectedLevel"
-            class="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option v-for="level in levels" :key="level" :value="level">
-              {{ level }}
-            </option>
-          </select>
+    <!-- Lean Filters -->
+    <LeanFilters
+      v-model="filters"
+      search-placeholder="Search classes, descriptions, codes..."
+      :quick-filters="[
+        { type: 'level', value: 'beginner', label: 'Beginner', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'level', value: 'intermediate', label: 'Intermediate', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'level', value: 'advanced', label: 'Advanced', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'level', value: 'expert', label: 'Expert', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'status', value: 'active', label: 'Active', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'status', value: 'draft', label: 'Draft', activeClass: 'bg-yellow-100 text-yellow-800 ring-2 ring-yellow-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'status', value: 'inactive', label: 'Inactive', activeClass: 'bg-gray-100 text-gray-800 ring-2 ring-gray-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' }
+      ]"
+      :advanced-filters="[
+        {
+          key: 'category',
+          label: 'Category',
+          options: categories.map(cat => ({ value: cat, label: cat }))
+        },
+        {
+          key: 'level',
+          label: 'Level',
+          options: levels.map(level => ({ value: level, label: level }))
+        },
+        {
+          key: 'status',
+          label: 'Status',
+          options: statuses.map(status => ({ value: status, label: status }))
+        }
+      ]"
+      @clear="filters = { search: '', category: '', level: '', status: '' }"
+    />
 
-          <select 
-            v-model="selectedStatus"
-            class="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option v-for="status in statuses" :key="status" :value="status">
-              {{ status }}
-            </option>
-          </select>
-          
-          <!-- View Mode Toggle -->
-          <div class="flex border border-gray-200 rounded-lg overflow-hidden">
-            <button 
-              @click="viewMode = 'grid'"
-              :class="viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'"
-              class="px-3 py-2 transition-colors"
-            >
-              <GridOutline class="w-4 h-4" />
-            </button>
-            <button 
-              @click="viewMode = 'list'"
-              :class="viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'"
-              class="px-3 py-2 transition-colors"
-            >
-              <ListOutline class="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+    <!-- View Mode Toggle -->
+    <div class="flex justify-end mb-6">
+      <div class="flex border border-gray-200 rounded-lg overflow-hidden">
+        <button 
+          @click="viewMode = 'grid'"
+          :class="viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'"
+          class="px-3 py-2 transition-colors"
+        >
+          <GridOutline class="w-4 h-4" />
+        </button>
+        <button 
+          @click="viewMode = 'list'"
+          :class="viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-white text-gray-600'"
+          class="px-3 py-2 transition-colors"
+        >
+          <ListOutline class="w-4 h-4" />
+        </button>
       </div>
     </div>
 

@@ -10,14 +10,11 @@ import dayjs from 'dayjs'
 import RoleSettings from './RoleSettings.vue'
 import RemoveDuplicates from '@/views/RemoveDuplicates.vue'
 import { useRoute } from 'vue-router'
-import { useAttachment } from '@/stores/attachment'
 import { getSrc } from '@/utils'
 import { 
   SaveOutline, 
   PersonOutline, 
-  SettingsOutline,
   ImageOutline,
-  GlobeOutline,
   TimeOutline,
   ShieldCheckmarkOutline,
   TrashOutline
@@ -28,7 +25,6 @@ const user = useUser()
 const toast = useToast()
 const route = useRoute()
 
-const inputFile = ref<HTMLInputElement | null>(null)
 const name = ref('')
 const language = ref('')
 const date = ref(user.user?.memoryDate ? new Date(user.user?.memoryDate) : new Date())
@@ -105,7 +101,7 @@ const currentTab = computed(() => route.query.tab as string || 'general')
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
             <!-- Form Section -->
             <div class="lg:col-span-2 space-y-6">
-              <div class="bg-gray-50 rounded-xl p-4 sm:p-6">
+              <div class="rounded-xl p-4 sm:p-6">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
                   <PersonOutline class="w-5 h-5" />
                   Profile Information
@@ -202,7 +198,6 @@ const currentTab = computed(() => route.query.tab as string || 'general')
                       type="file"
                       class="hidden"
                       accept="image/*"
-                      ref="inputFile"
                       @change="preview.onChangeFile"
                     />
                   </label>
@@ -214,7 +209,7 @@ const currentTab = computed(() => route.query.tab as string || 'general')
 
         <!-- Timer Settings -->
         <div v-else-if="currentTab === 'timer'">
-          <div class="bg-gray-50 rounded-xl p-4 sm:p-6">
+          <div class="rounded-xl p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <TimeOutline class="w-5 h-5" />
               Study Timer Settings
@@ -244,7 +239,7 @@ const currentTab = computed(() => route.query.tab as string || 'general')
 
         <!-- Permissions Settings -->
         <div v-else-if="currentTab === 'permissions'">
-          <div v-if="user.can('permissions')" class="bg-gray-50 rounded-xl p-4 sm:p-6">
+          <div v-if="user.can('permissions')" class="rounded-xl p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <ShieldCheckmarkOutline class="w-5 h-5" />
               Role & Permissions
@@ -262,7 +257,7 @@ const currentTab = computed(() => route.query.tab as string || 'general')
 
         <!-- Remove Duplicates Settings -->
         <div v-else-if="currentTab === 'remove-duplicates'">
-          <div v-if="user.can('remove-duplicates')" class="bg-gray-50 rounded-xl p-4 sm:p-6">
+          <div v-if="user.can('remove-duplicates')" class="rounded-xl p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <TrashOutline class="w-5 h-5" />
               Remove Duplicates

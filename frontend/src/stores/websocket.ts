@@ -53,8 +53,11 @@ export const useWebsocket = defineStore('websocket', () => {
       msg: string,
       clients: never[],
     }) => {
-      console.log('[leave_room_user]', data.clients)
       clients.value = data?.clients || []
+      // Go back to the previous URL in browser history
+      if (window && window.history && typeof window.history.back === 'function') {
+        window.history.back();
+      }
     })
   }
 

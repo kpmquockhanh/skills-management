@@ -1,7 +1,5 @@
 import { config } from 'dotenv';
 
-export { default as swaggerConfig } from './swagger.config.js';
-
 config();
 const {
   DB_URI,

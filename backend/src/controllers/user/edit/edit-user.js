@@ -68,7 +68,6 @@ export default async (req, res) => {
       return res.status(500).json(errorHelper('00087', req, err.message)).end();
     }
   }
-  console.log('FINAL USER', user.toJSON());
   await user.save();
   logger('00086', req.user._id, getText('en', '00086'), 'Info', req);
   return res.status(200).json({

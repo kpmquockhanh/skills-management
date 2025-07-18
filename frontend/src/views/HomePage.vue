@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, nextTick, onMounted, ref, type Ref, computed } from 'vue'
+import { watch, nextTick, onMounted, ref, type Ref } from 'vue'
 import Add from '@vicons/fluent/Add16Filled'
 import Camera from '@vicons/fluent/Camera20Filled'
 import { Icon } from '@vicons/utils'

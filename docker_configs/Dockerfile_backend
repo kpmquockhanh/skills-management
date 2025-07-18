@@ -1,12 +1,13 @@
-FROM node:24-bullseye
+# ---- Build Stage ----
+FROM node:24-alpine AS build
 
 WORKDIR /app
 
-# Install system dependencies for sharp
-RUN apt-get update && apt-get install -y \
-  libvips-dev \
-  build-essential \
-  python3
+# # Install system dependencies for sharp
+# RUN apk add --no-cache \
+#   vips-dev \
+#   build-base \
+#   python3
 
 # Enable Yarn (via Corepack)
 RUN corepack enable
@@ -18,6 +19,22 @@ RUN yarn install
 
 # Copy the rest of the app
 COPY . .
+
+# ---- Production Stage ----
+FROM node:24-alpine AS prod
+
+WORKDIR /app
+
+# # Install only runtime dependencies for sharp
+# RUN apk add --no-cache \
+#   vips-dev \
+#   python3
+
+# Enable Yarn (via Corepack)
+RUN corepack enable
+
+# Copy only necessary files from build stage
+COPY --from=build /app ./
 
 EXPOSE 3000
 CMD ["yarn", "dev"] # or whatever your start command is

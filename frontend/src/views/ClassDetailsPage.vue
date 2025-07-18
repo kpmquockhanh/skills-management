@@ -816,7 +816,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClassStore, type Class } from '../stores/class'
 import { useSkillTreeStore } from '../stores/skillTree'
-import { useUserManagement, type UserManagementUser, type Class as UserManagementClass } from '@/stores/userManagement'
+import { useUserManagement, type UserManagementUser } from '@/stores/userManagement'
 import { useToast } from 'vue-toastification'
 import {
   ArrowBackOutline,
@@ -831,7 +831,6 @@ import {
   ChevronForwardOutline,
   TrashOutline,
   AddOutline,
-  BookOutline,
   CloseOutline
 } from '@vicons/ionicons5'
 
@@ -910,12 +909,6 @@ const toggleSkillTree = (skillTreeId: string) => {
     expandSkillTree.value.add(skillTreeId)
   }
 }
-
-const getSkillProgress = (skillName: string) => {
-  // Mock progress calculation - you can implement actual logic here
-  return Math.floor(Math.random() * 100)
-}
-
 // Get skills count for a skill tree
 const getSkillTreeSkillCount = (skillTree: any) => {
   let count = 0
@@ -978,7 +971,7 @@ const loadClassStudents = async () => {
     const classStudentIds = classData.value.students?.map(s => s.user._id) || []
     
     // Filter users to get only those assigned to this class
-    const allUsers = await userManagement.fetchUsers({ limit: 1000 })
+    await userManagement.fetchUsers({ limit: 1000 })
     classStudents.value = userManagement.users.filter(user => 
       classStudentIds.includes(user._id)
     )

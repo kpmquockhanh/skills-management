@@ -20,7 +20,7 @@ export default async (req, res) => {
   const user = await User.findOne({ email: req.body.email, isActivated: true, isVerified: true }).populate('photo').select('+password')
     .catch((err) => res.status(500).json(errorHelper('00041', req, err.message)));
 
-  if (!user) return res.status(404).json(errorHelper('00042', req));
+  if (!user) return res.status(404).json(errorHelper('00042', req, 'User not found'));
 
   const match = await compare(req.body.password, user.password);
   if (!match) return res.status(400).json(errorHelper('00045', req, 'Invalid email or password'));

@@ -10,6 +10,9 @@ export interface SkillRating {
     username: string
     email: string
     type: string
+    photo: {
+      src: string
+    }
   }
   skill: {
     _id: string
@@ -116,6 +119,8 @@ export const useSkillRating = defineStore('skillRating', () => {
   })
   const loading = ref(false)
   const selectedRating = ref<SkillRating | null>(null)
+
+  const allCompletedSkills = ref<SkillRating[]>([])
 
   const http = useRequest()
 
@@ -469,6 +474,25 @@ export const useSkillRating = defineStore('skillRating', () => {
     selectedRating.value = null
   }
 
+  // Fetch all completed skills from all users (for noticeboard)
+  const fetchAllCompletedSkills = async (options: { page?: number; limit?: number } = {}) => {
+    loading.value = true
+    try {
+      const queryParams = new URLSearchParams()
+      if (options.page) queryParams.append('page', options.page.toString())
+      if (options.limit) queryParams.append('limit', options.limit.toString())
+      const { data } = await http.request(`/v1/skill-ratings/completed/all?${queryParams.toString()}`, 'GET', {})
+      allCompletedSkills.value = data.ratings
+      pagination.value = data.pagination
+      return data
+    } catch (error) {
+      console.error('Error fetching all completed skills:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   return {
     // State
     ratings,
@@ -477,7 +501,7 @@ export const useSkillRating = defineStore('skillRating', () => {
     pagination,
     loading,
     selectedRating,
-
+    allCompletedSkills,
     // Actions
     createOrUpdateRating,
     fetchUserRatings,
@@ -489,6 +513,7 @@ export const useSkillRating = defineStore('skillRating', () => {
     addNote,
     updateProgress,
     clearData,
+    fetchAllCompletedSkills,
 
     // Computed
     activeRatings,

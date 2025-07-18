@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import DashboardLayout from '@/components/DashboardLayout.vue'
-import { ref, onMounted, computed } from 'vue'
-import { useAuthStore } from '@/stores/auth'
+import { ref, onMounted, computed, markRaw } from 'vue'
+import type { Ref } from 'vue'
 import { useSkillRating } from '@/stores/skillRating'
+import { useUser } from '@/stores/user'
 import { 
   BookOutline, 
   TrophyOutline, 
@@ -16,18 +16,19 @@ import {
 } from '@vicons/ionicons5'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import {getSrc} from '@/utils'
 
 dayjs.extend(relativeTime)
 
-const authStore = useAuthStore()
 const skillRating = useSkillRating()
+const userStore = useUser()
 
 const stats = ref([
   { 
     title: 'Skills Learned', 
     value: '0', 
     change: '+0 this month', 
-    icon: BookOutline,
+    icon: markRaw(BookOutline),
     color: 'from-blue-500 to-blue-600',
     bgColor: 'bg-blue-50',
     textColor: 'text-blue-600'
@@ -36,7 +37,7 @@ const stats = ref([
     title: 'Completed Skills', 
     value: '0', 
     change: '+0 this month', 
-    icon: TrophyOutline,
+    icon: markRaw(TrophyOutline),
     color: 'from-green-500 to-green-600',
     bgColor: 'bg-green-50',
     textColor: 'text-green-600'
@@ -45,7 +46,7 @@ const stats = ref([
     title: 'Study Hours', 
     value: '0', 
     change: '+0h this week', 
-    icon: TimeOutline,
+    icon: markRaw(TimeOutline),
     color: 'from-purple-500 to-purple-600',
     bgColor: 'bg-purple-50',
     textColor: 'text-purple-600'
@@ -54,14 +55,14 @@ const stats = ref([
     title: 'Avg Rating', 
     value: '0/10', 
     change: '+0 this month', 
-    icon: TrendingUpOutline,
+    icon: markRaw(TrendingUpOutline),
     color: 'from-orange-500 to-orange-600',
     bgColor: 'bg-orange-50',
     textColor: 'text-orange-600'
   }
 ])
 
-const recentActivities = ref([])
+const recentActivities: Ref<any[]> = ref([])
 
 // Computed properties for real data
 const completedSkills = computed(() => {
@@ -82,10 +83,10 @@ const updateStats = () => {
 }
 
 const loadUserSkills = async () => {
-  if (!authStore.user?._id) return
+  if (!userStore.user?._id) return
   
   try {
-    await skillRating.fetchUserRatings(authStore.user._id, {
+    await skillRating.fetchUserRatings(userStore.user._id, {
       page: 1,
       limit: 50
     })
@@ -97,16 +98,16 @@ const loadUserSkills = async () => {
 }
 
 const updateRecentActivities = () => {
-  const activities = []
+  const activities: any[] = []
   
   // Add completed skills
   completedSkills.value.forEach(rating => {
     activities.push({
       action: `Completed ${rating.skill.name}`,
-      user: authStore.user?.name || 'You',
+      user: userStore.user?.name || 'You',
       time: dayjs(rating.updatedAt).fromNow(),
       type: 'certificate',
-      avatar: authStore.user?.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+      avatar: getSrc(userStore.user?.photoUrl, true) || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
       skill: rating.skill.name,
       progress: rating.progress,
       rating: rating.rating,
@@ -120,10 +121,10 @@ const updateRecentActivities = () => {
     .forEach(rating => {
       activities.push({
         action: `Progress on ${rating.skill.name}`,
-        user: authStore.user?.name || 'You',
+        user: getSrc(userStore.user?.photoUrl, true) || 'You',
         time: dayjs(rating.updatedAt).fromNow(),
         type: 'learning',
-        avatar: authStore.user?.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
+        avatar: userStore.user?.photoUrl || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face',
         skill: rating.skill.name,
         progress: rating.progress,
         rating: rating.rating,
@@ -139,6 +140,7 @@ const updateRecentActivities = () => {
 // Lifecycle
 onMounted(() => {
   loadUserSkills()
+  skillRating.fetchAllCompletedSkills({ page: 1, limit: 10 })
 })
 
 const skillProgress = computed(() => {
@@ -196,7 +198,7 @@ const getActivityColor = (type: string) => {
   <div>
     <!-- Welcome Section -->
     <div class="mb-6 sm:mb-8">
-      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome back, {{ authStore.user?.name || 'User' }}! 👋</h1>
+      <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Welcome back, {{ userStore.user?.name || 'User' }}! 👋</h1>
       <p class="text-gray-600 text-sm sm:text-base">Track your skills progress and continue learning.</p>
     </div>
 
@@ -221,8 +223,54 @@ const getActivityColor = (type: string) => {
 
     <!-- Main Content Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-      <!-- Recent Activities -->
-      <div class="lg:col-span-2">
+      <!-- Left Column: Noticeboard + Recent Activities -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Noticeboard: Completed Skills -->
+        <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-blue-200 p-4 sm:p-6 mb-4">
+          <h2 class="text-lg sm:text-xl font-bold text-blue-700 mb-2 flex items-center gap-2">
+            <TrophyOutline class="w-5 h-5 text-blue-500" />
+            Noticeboard: Completed Skills
+          </h2>
+          <div v-if="skillRating.allCompletedSkills.length > 0" class="relative">
+            <div class="timeline-modern relative">
+              <div v-for="(item, idx) in skillRating.allCompletedSkills" :key="item._id" class="timeline-item flex items-start gap-4 mb-10 last:mb-0 group animate-fadein">
+                <!-- Timeline vertical line (only if not last item) -->
+                <div class="absolute left-5 top-6 w-0.5 bg-blue-200" :style="{ height: idx < skillRating.allCompletedSkills.length - 1 ? 'calc(100% + 1.5rem)' : '0' }"></div>
+                <!-- Dot and avatar -->
+                <div class="relative flex flex-col items-center" style="width: 40px;">
+                  <span class="block w-4 h-4 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 border-2 border-white z-10 mb-1"></span>
+                  <img v-if="item.user?.photo?.src" :src="getSrc(item.user.photo.src, true)" class="w-12 h-12 object-cover rounded-full border-2 border-blue-100" :alt="item.user.name" />
+                  <div v-else class="w-12 h-12 rounded-full flex items-center justify-center bg-blue-100 border-2 border-blue-200">
+                    <TrophyOutline class="w-6 h-6 text-blue-500" />
+                  </div>
+                </div>
+                <!-- Content card -->
+                <div class="flex-1 min-w-0 bg-white rounded-xl p-4 border border-blue-100 transition-all">
+                  <div class="font-semibold text-gray-800 text-base truncate mb-1">{{ item.skill?.name }}</div>
+                  <div class="text-xs text-gray-500 mb-2">
+                    <div>
+                      By <span class="font-medium text-blue-700">{{ item.user?.name || 'Unknown' }}</span> 
+                    </div>
+                    <div>
+                      Completed {{ dayjs(item.completedAt).format('MMM D, YYYY') }}
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span v-if="item.rating" class="text-xs text-yellow-600 font-bold flex items-center gap-1">
+                      <StarOutline class="w-3 h-3" /> {{ item.rating }}/10
+                    </span>
+                    <span v-if="item.masteryLevel" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">{{ item.masteryLevel }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div v-else class="text-center py-4 text-gray-500">
+            <TrophyOutline class="w-8 h-8 mx-auto mb-2 text-blue-200" />
+            No completed skills yet. Keep learning!
+          </div>
+        </div>
+        <!-- Recent Activities -->
         <div class="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <div class="p-4 sm:p-6 border-b border-gray-100">
             <h2 class="text-lg sm:text-xl font-bold text-gray-800">Recent Learning Activities</h2>
@@ -235,9 +283,7 @@ const getActivityColor = (type: string) => {
                 <PlayCircleOutline class="w-8 h-8 text-gray-400" />
               </div>
               <h3 class="text-lg font-semibold text-gray-700 mb-2">No Recent Activities</h3>
-             
             </div>
-            
             <!-- Activities List -->
             <div v-else>
               <div class="space-y-3 sm:space-y-4">
@@ -250,17 +296,20 @@ const getActivityColor = (type: string) => {
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ activity.action }}</p>
-                    <div class="flex items-center gap-2 mt-1">
-                      <span class="text-xs sm:text-sm text-gray-600">{{ activity.skill }}</span>
-                      <span class="text-xs text-gray-500">•</span>
-                      <span class="text-xs sm:text-sm text-gray-600">{{ activity.progress }}%</span>
-                      <span class="text-xs text-gray-500">•</span>
+                    <div class="flex gap-2 mt-1 flex-col">
                       <div class="flex items-center gap-1">
-                        <StarOutline class="w-3 h-3 text-yellow-500" />
-                        <span class="text-xs text-gray-600">{{ activity.rating }}/10</span>
+                        <span class="text-xs sm:text-sm text-gray-600">{{ activity.skill }}</span>
+                        <span class="text-xs sm:text-sm text-gray-600">•</span>
+                        <span class="text-xs sm:text-sm text-gray-600">{{ activity.progress }}%</span>
                       </div>
-                      <span v-if="activity.masteryLevel" class="text-xs text-gray-500">•</span>
-                      <span v-if="activity.masteryLevel" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">{{ activity.masteryLevel }}</span>
+                      <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1">
+                          <StarOutline class="w-3 h-3 text-yellow-500" />
+                          <span class="text-xs text-gray-600">{{ activity.rating }}/10</span>
+                        </div>
+                        <span class="text-xs sm:text-sm text-gray-600">•</span>
+                        <span v-if="activity.masteryLevel" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">{{ activity.masteryLevel }}</span>
+                      </div>
                     </div>
                   </div>
                   <div class="flex items-center gap-2 flex-shrink-0">
@@ -411,3 +460,30 @@ const getActivityColor = (type: string) => {
 
   </div>
 </template> 
+
+<style scoped>
+.timeline-modern {
+  position: relative;
+}
+.timeline-item {
+  position: relative;
+}
+.timeline-item:last-child .absolute.left-5.top-6.w-0\.5 {
+  display: none;
+}
+@media (max-width: 640px) {
+  .timeline-modern {
+    padding-left: 1.5rem;
+  }
+  .timeline-item .flex-1 {
+    padding: 1rem 0.5rem;
+  }
+}
+@keyframes fadein {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+.animate-fadein {
+  animation: fadein 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+</style> 

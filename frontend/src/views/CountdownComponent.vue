@@ -37,7 +37,6 @@ onMounted(() => {
     years.value = diff.years()
     months.value = diff.months()
     days.value = diff.days()
-    minutes.value = diff.seconds()
     hours.value = diff.hours()
     minutes.value = diff.minutes()
     seconds.value = diff.seconds()

@@ -1,5 +1,4 @@
 import { Server } from 'socket.io';
-import { initShopEvents } from './ws-events/shopee_events.js';
 import { initChatEvents } from './ws-events/chat_events.js';
 
 export default async (expressServer, expressApp) => {
@@ -20,6 +19,5 @@ export default async (expressServer, expressApp) => {
     next();
   });
 
-  initShopEvents(io.of('/shopee'));
   initChatEvents(io.of('/chat'));
 };

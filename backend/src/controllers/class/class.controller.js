@@ -1,9 +1,9 @@
 import { Class } from '../../models/index.js';
 import responseHelper from '../../utils/helpers/response-helper.js';
-import getText from '../../utils/lang/get-text.js';
 
 // Get all classes with pagination and filters
 export const getAllClasses = async (req, res) => {
+  console.log('getAllClasses', req.query)
   try {
     const {
       page = 1,

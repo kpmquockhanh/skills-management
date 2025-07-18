@@ -8,7 +8,6 @@ import {
   // sendCodeToEmail,
   logger,
   getText,
-  turkishToEnglish,
   signAccessToken,
 } from '../../../utils/index.js';
 import ipHelper from '../../../utils/helpers/ip-helper.js';
@@ -41,7 +40,7 @@ export default async (req, res) => {
   let username = '';
   let tempName = '';
   let existsUsername = true;
-  const name = turkishToEnglish(req.body.name);
+  const name = req.body.name;
   if (name.includes(' ')) {
     tempName = name.trim().split(' ').slice(0, 1).join('')
       .toLowerCase();

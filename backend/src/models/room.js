@@ -19,6 +19,12 @@ const roomSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: 'User',
     },
+    class: {
+      type: Schema.Types.ObjectId,
+      ref: 'Class',
+      immutable: true, // cannot be changed once set
+      default: null,
+    },
   },
   {
     timestamps: true,

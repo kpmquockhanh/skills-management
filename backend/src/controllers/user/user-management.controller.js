@@ -2,6 +2,7 @@ import pick from 'lodash/pick.js';
 import { User, Class } from '../../models/index.js';
 import { errorHelper, getText, logger } from '../../utils/index.js';
 import { validateGetListUsers } from '../../validators/role_permission.validator.js';
+import { validateCreateUser, validateUpdateUser } from '../../validators/user.validator.js';
 import bcrypt from 'bcryptjs';
 
 export const getAllUsers = async (req, res) => {
@@ -86,6 +87,12 @@ export const getAllUsers = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
+    // Validate request body
+    const { error } = validateCreateUser(req.body);
+    if (error) {
+      return res.status(400).json(errorHelper('00108', req, error.details[0].message));
+    }
+
     const {
       name,
       email,
@@ -98,11 +105,6 @@ export const createUser = async (req, res) => {
       isVerified = true,
       isPremium = false
     } = req.body;
-
-    // Validate required fields
-    if (!name || !email || !username || !password) {
-      return res.status(400).json(errorHelper('00108', req, 'Missing required fields'));
-    }
 
     // Check if email already exists
     const existingEmail = await User.findOne({ email: email.toLowerCase() });
@@ -212,6 +214,12 @@ export const getUserById = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
+    // Validate request body
+    const { error } = validateUpdateUser(req.body);
+    if (error) {
+      return res.status(400).json(errorHelper('00096', req, error.details[0].message));
+    }
+
     const { userId } = req.params;
     const updateData = pick(req.body, [
       'name', 'username', 'type', 'language', 'gender', 

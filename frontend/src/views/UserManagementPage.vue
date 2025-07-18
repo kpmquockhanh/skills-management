@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useUserManagement, type UserManagementUser, type Class } from '@/stores/userManagement'
-import { useUser } from '@/stores/user'
 import { useToast } from 'vue-toastification'
+import LeanFilters from '@/components/LeanFilters.vue'
 import { 
   PeopleOutline, 
-  SearchOutline, 
   AddOutline, 
   CreateOutline, 
   TrashOutline,
   PersonOutline,
-  MailOutline,
-  CalendarOutline,
   ShieldCheckmarkOutline,
   BookOutline,
-  FilterOutline,
-  RefreshOutline,
   CloseOutline,
   CheckmarkOutline,
   CloseCircleOutline
@@ -27,20 +21,19 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 
 dayjs.extend(relativeTime)
 
-const router = useRouter()
 const userManagement = useUserManagement()
-const userStore = useUser()
 const toast = useToast()
 
 // State
-const searchQuery = ref('')
-const selectedType = ref('')
-const selectedStatus = ref('')
+const filters = ref({
+  search: '',
+  type: '',
+  status: ''
+})
 const currentPage = ref(1)
 const showUserModal = ref(false)
 const showClassModal = ref(false)
 const selectedUser = ref<UserManagementUser | null>(null)
-const editingUser = ref<Partial<UserManagementUser>>({})
 const isEditing = ref(false)
 
 // Form data for editing user
@@ -64,8 +57,8 @@ const selectedClassId = ref('')
 const filteredUsers = computed(() => {
   let filtered = userManagement.users
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
+  if (filters.value.search) {
+    const query = filters.value.search.toLowerCase()
     filtered = filtered.filter(user => 
       user.name.toLowerCase().includes(query) ||
       user.email.toLowerCase().includes(query) ||
@@ -73,12 +66,12 @@ const filteredUsers = computed(() => {
     )
   }
 
-  if (selectedType.value) {
-    filtered = filtered.filter(user => user.type === selectedType.value)
+  if (filters.value.type) {
+    filtered = filtered.filter(user => user.type === filters.value.type)
   }
 
-  if (selectedStatus.value) {
-    const isActive = selectedStatus.value === 'active'
+  if (filters.value.status) {
+    const isActive = filters.value.status === 'active'
     filtered = filtered.filter(user => user.isActivated === isActive)
   }
 
@@ -99,9 +92,9 @@ const loadUsers = async () => {
     await userManagement.fetchUsers({
       page: currentPage.value,
       limit: 10,
-      search: searchQuery.value,
-      type: selectedType.value || undefined,
-      isActivated: selectedStatus.value === 'active' ? true : selectedStatus.value === 'inactive' ? false : undefined
+      search: filters.value.search,
+      type: filters.value.type || undefined,
+      isActivated: filters.value.status === 'active' ? true : filters.value.status === 'inactive' ? false : undefined
     })
   } catch (error) {
     toast.error('Failed to load users')
@@ -163,8 +156,10 @@ const debouncedSearch = () => {
 const saveUser = async () => {
   try {
     if (isEditing.value && selectedUser.value) {
-      await userManagement.updateUser(selectedUser.value._id, editForm.value)
-      toast.success('User updated successfully')
+      const resp = await userManagement.updateUser(selectedUser.value._id, editForm.value as Partial<UserManagementUser>)
+      if (resp && (!resp.error)) {
+        toast.success('User updated successfully')
+      }
     } else {
       // Create new user
       const newUserData = {
@@ -178,17 +173,14 @@ const saveUser = async () => {
         isActivated: editForm.value.isActivated,
         isVerified: false, // Default to false for new users
         isPremium: false, // Default to false for new users
-        photoUrl: '',
         platform: 'web',
-        timezone: 0,
-        deviceId: '',
-        memoryDate: new Date().toISOString(),
-        isOnline: false,
-        roles: [],
-        permissions: []
+        // lastLogin: new Date().toISOString(),
+        // createdAt: new Date().toISOString(),
+        // updatedAt: new Date().toISOString(),
+        // _id: '',
       }
       
-      await userManagement.createUser(newUserData)
+      await userManagement.createUser(newUserData as any)
       toast.success('User created successfully')
     }
     showUserModal.value = false
@@ -250,9 +242,11 @@ const removeClass = async (classId: string) => {
 }
 
 const clearFilters = () => {
-  searchQuery.value = ''
-  selectedType.value = ''
-  selectedStatus.value = ''
+  filters.value = {
+    search: '',
+    type: '',
+    status: ''
+  }
   currentPage.value = 1
   loadUsers()
 }
@@ -261,6 +255,11 @@ const changePage = (page: number) => {
   currentPage.value = page
   loadUsers()
 }
+
+// Watch for filter changes
+watch(filters, () => {
+  debouncedSearch()
+}, { deep: true })
 
 // Lifecycle
 onMounted(() => {
@@ -289,7 +288,7 @@ onMounted(() => {
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
       <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
         <div class="flex items-center justify-between">
           <div>
@@ -351,61 +350,40 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Filters and Search -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
-      <div class="flex flex-col lg:flex-row gap-4">
-        <!-- Search -->
-        <div class="flex-1">
-          <div class="relative">
-            <SearchOutline class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search users by name, email, or username..."
-              class="input input-bordered w-full pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              @input="debouncedSearch"
-            />
-          </div>
-        </div>
-        
-        <!-- Type Filter -->
-        <div class="w-full lg:w-48">
-          <select
-            v-model="selectedType"
-            class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            @change="debouncedSearch"
-          >
-            <option value="">All Types</option>
-            <option value="admin">Admin</option>
-            <option value="user">User</option>
-            <option value="teacher">Teacher</option>
-            <option value="kid">Kid</option>
-          </select>
-        </div>
-        
-        <!-- Status Filter -->
-        <div class="w-full lg:w-48">
-          <select
-            v-model="selectedStatus"
-            class="select select-bordered w-full focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            @change="debouncedSearch"
-          >
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-        
-        <!-- Clear Filters -->
-        <button
-          @click="clearFilters"
-          class="btn btn-outline border-gray-200 hover:bg-gray-50 hover:border-blue-300"
-        >
-          <RefreshOutline class="w-4 h-4" />
-          Clear
-        </button>
-      </div>
-    </div>
+    <!-- Lean Filters -->
+    <LeanFilters
+      v-model="filters"
+      search-placeholder="Search users by name, email, or username..."
+      :quick-filters="[
+        { type: 'type', value: 'admin', label: 'Admin', activeClass: 'bg-purple-100 text-purple-800 ring-2 ring-purple-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'type', value: 'user', label: 'User', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'type', value: 'teacher', label: 'Teacher', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'type', value: 'kid', label: 'Kid', activeClass: 'bg-orange-100 text-orange-800 ring-2 ring-orange-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'status', value: 'active', label: 'Active', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+        { type: 'status', value: 'inactive', label: 'Inactive', activeClass: 'bg-red-100 text-red-800 ring-2 ring-red-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' }
+      ]"
+      :advanced-filters="[
+        {
+          key: 'type',
+          label: 'Type',
+          options: [
+            { value: 'admin', label: 'Admin' },
+            { value: 'user', label: 'User' },
+            { value: 'teacher', label: 'Teacher' },
+            { value: 'kid', label: 'Kid' }
+          ]
+        },
+        {
+          key: 'status',
+          label: 'Status',
+          options: [
+            { value: 'active', label: 'Active' },
+            { value: 'inactive', label: 'Inactive' }
+          ]
+        }
+      ]"
+      @clear="clearFilters"
+    />
 
     <!-- Users Table -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

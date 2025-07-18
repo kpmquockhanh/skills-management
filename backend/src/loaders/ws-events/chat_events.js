@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken';
 import pkg from 'mongoose';
 import { jwtSecretKey } from '../../config/index.js';
-import { User } from '../../models/index.js';
+import { User, Room } from '../../models/index.js';
+import Role from '../../models/role.js';
 
 // eslint-disable-next-line import/prefer-default-export
 export const initChatEvents = (io) => {
@@ -29,11 +30,52 @@ export const initChatEvents = (io) => {
     return clientData;
   };
 
-  io.adapter.on('join-room', (room, id) => {
+  io.adapter.on('join-room', async (room, id) => {
     if (room === id) return;
     const currentClient = io.sockets.get(id);
-    console.log('join-room', {
+    let hasSAdmin = false;
+    try {
+      const sAdminRole = await Role.findOne({ name: 'SAdmin' });
+      if (!sAdminRole) {
+        console.log('SAdmin role not found');
+        return;
+      }
+
+      if (sAdminRole && currentClient.user && currentClient.user.roles) {
+        const sAdminRoleId = sAdminRole._id.toString();
+        hasSAdmin = currentClient.user.roles.some(role => {
+          if (typeof role === 'string') {
+            return role === sAdminRoleId;
+          }
+          if (role && (role._id || role.id)) {
+            return (role._id || role.id).toString() === sAdminRoleId;
+          }
+          return false;
+        });
+      }
+    } catch (e) {
+      console.error('Error checking SAdmin role:', e);
+    }
+
+    const roomData = await Room.findOne({ _id: room });
+
+    const isInClass = currentClient.user.classes.some(cls => cls._id.toString() === roomData.class.toString());
+
+    if (!hasSAdmin && !isInClass) {
+      console.log('kicked from room', room, id);
+      currentClient.leave(room);
+    
+      io.to(id).emit('leave_room_user', {
+        msg: `${currentClient.user.name} leave this group`,
+        room,
+        id,
+      });
+      return;
+    }
+    console.log('new_room_user', {
       room, id,
+      hasSAdmin,
+      isInClass,
     });
     io.to(room).emit('new_room_user', {
       msg: `${currentClient.user.name} joined this group`,
@@ -67,7 +109,10 @@ export const initChatEvents = (io) => {
 
       const user = await User.findOne(
         { _id: socket.user._id, isVerified: true, isActivated: true },
-      )
+      ).populate({
+        path: 'classes',
+        select: 'name id',
+      })
         .catch((err) => next(new Error(err.message)));
 
       if (!user) return next(new Error('User not found'));

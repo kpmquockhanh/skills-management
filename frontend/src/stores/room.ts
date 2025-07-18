@@ -15,12 +15,13 @@ export const useRoom = defineStore('room', () => {
     items.value = res.rooms
   }
 
-  const createRoom = async (r: {name: string, description: string}) => {
+  const createRoom = async (r: {name: string, description: string, class?: string | null}) => {
     creating.value = true
     const resp = await req.request('/v1/chat', 'POST', {
       body: {
         name: r.name,
         description: r.description,
+        ...(r.class ? { class: r.class } : {})
       }
     })
     creating.value = false
@@ -69,10 +70,12 @@ export const useRoom = defineStore('room', () => {
 
   const deleteRoom = async (roomId: string) => {
     const resp = await req.request(`/v1/chat/${roomId}`, 'DELETE', {})
+    console.log('KPM --- deleteRoom', resp)
     if (resp.error) {
-      return
+      return resp
     }
     items.value = items.value.filter((room) => room._id !== roomId)
+    return resp
   }
   return { items, creating, updating, fetchRooms, createRoom, joinRoom, deleteRoom, editRoom, updateRoom }
 })

@@ -38,7 +38,8 @@ const userSchema = new Schema(
     // NOTE: You can change the gender options acc. to your needs in the app.
     gender: {
       type: String,
-      enum: ['male', 'female', 'other'],
+      enum: ['male', 'female', 'other', ''],
+      default: '',
     },
     countryCode: {
       type: String,
@@ -90,6 +91,14 @@ const userSchema = new Schema(
     timestamps: true,
   },
 );
+userSchema.virtual('photoSrc').get(function () {
+  // If photo is populated and has a src field, return it directly
+  if (this.photo && typeof this.photo === 'object' && this.photo.src) {
+    return this.photo.src;
+  }
+  // If photo is just an ObjectId or not populated, return null
+  return null;
+});
 
 const User = model('User', userSchema);
 export default User;

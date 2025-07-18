@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, markRaw } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useUser } from '../stores/user'
@@ -10,9 +10,6 @@ import {
   ChatbubbleEllipsesOutline, 
   PeopleOutline, 
   SettingsOutline, 
-  PersonOutline,
-  AddOutline,
-  EyeOutline,
   TimeOutline,
   ShieldCheckmarkOutline,
   TrashOutline,
@@ -42,72 +39,65 @@ const navigationItems = computed(() => {
   return [
   {
     name: 'Dashboard',
-    icon: BarChartOutline,
+    icon: markRaw(BarChartOutline),
     path: '/',
     badge: null,
     subItems: []
   },
   {
     name: 'Classes',
-    icon: BookOutline,
+    icon: markRaw(BookOutline),
     path: '/classes',
     badge: null,
     subItems: []
   },
   {
     name: 'Skills',
-    icon: TrendingUpOutline,
+    icon: markRaw(TrendingUpOutline),
     path: '/skills',
     badge: null,
     subItems: []
   },
   {
     name: 'Messages',
-    icon: ChatbubbleEllipsesOutline,
+    icon: markRaw(ChatbubbleEllipsesOutline),
     path: '/chat',
     badge: null,
     subItems: []
   },
   {
-    name: 'Friends',
-    icon: PeopleOutline,
-    path: '/friends',
-    badge: computed(() => authStore.isAuth ? 'New' : null),
-    subItems: []
-  },
-  {
     name: 'Settings',
-    icon: SettingsOutline,
+    icon: markRaw(SettingsOutline),
     path: '/settings',
     badge: null,
     subItems: [
       {
         name: 'General',
         path: '/settings?tab=general',
-        icon: SettingsOutline
+        icon: markRaw(SettingsOutline)
       },
       {
         name: 'Timer',
         path: '/settings?tab=timer',
-        icon: TimeOutline
+        icon: markRaw(TimeOutline)
       },
       {
         name: 'Permissions',
         path: '/settings?tab=permissions',
-        icon: ShieldCheckmarkOutline,
+        icon: markRaw(ShieldCheckmarkOutline),
         disabled: !userStore.can('permissions')
       },
       {
         name: 'Duplicates',
         path: '/settings?tab=remove-duplicates',
-        icon: TrashOutline,
+        icon: markRaw(TrashOutline),
         disabled: !userStore.can('remove-duplicates')
       }
     ]
   },
   {
     name: 'Users',
-    icon: PeopleOutline,
+    icon: markRaw(PeopleOutline),
     path: '/user-management',
     badge: null,
     subItems: []
@@ -144,7 +134,7 @@ const isActiveRoute = (itemPath: string) => {
   
   // Handle nested routes - check if current path starts with the item path
   // This ensures /classes/123 highlights the "Classes" navigation item
-  const nestedRoutes = ['/classes', '/skills', '/chat', '/friends', '/settings', '/user-management']
+  const nestedRoutes = ['/classes', '/skills', '/chat', '/settings', '/user-management']
   if (nestedRoutes.includes(itemPath)) {
     return route.path.startsWith(itemPath)
   }

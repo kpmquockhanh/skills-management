@@ -375,6 +375,7 @@ userSkillRatingSchema.statics.findByUser = function(userId, options = {}) {
     .populate('skillTree', 'name description')
     .populate('class', 'name code')
     .populate('ratedBy', 'name username')
+   
     .sort({ updatedAt: -1 });
 };
 

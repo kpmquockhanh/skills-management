@@ -8,7 +8,8 @@ import {
   getArchivedUserSkills,
   addAssessment,
   addNote,
-  updateSkillProgress
+  updateSkillProgress,
+  getAllCompletedSkills
 } from '../../controllers/skill/skillRating.controller.js';
 import { auth } from '../../middlewares/index.js';
 
@@ -40,5 +41,8 @@ router.get('/user/:userId', auth, getUserSkillRatings);
 
 // Get skill ratings for a specific skill
 router.get('/skill/:skillId', auth, getSkillRatings);
+
+// Get all completed skills from all users
+router.get('/completed/all', auth, getAllCompletedSkills);
 
 export default router; 

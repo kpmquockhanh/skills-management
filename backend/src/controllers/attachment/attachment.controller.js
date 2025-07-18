@@ -1,5 +1,5 @@
 import {
-  Attachment, Relationship, Role, User,
+  Attachment, Role, User,
 } from '../../models/index.js';
 import {
   validateCreateAttachment,

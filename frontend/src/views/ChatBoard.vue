@@ -16,6 +16,7 @@ import { useRequest } from '@/stores/http'
 import type { Message } from '@/types/base'
 import { useUser } from '@/stores/user'
 import { useRoom } from '@/stores/room'
+import {getSrc} from '@/utils';
 
 const type = ref();
 const mainScreen = ref();
@@ -120,8 +121,14 @@ onBeforeUnmount(() => {
             Back
           </button>
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
-              <ChatbubbleEllipsesOutline class="w-5 h-5 text-blue-600" />
+            <div class="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-r from-blue-100 to-purple-100 flex items-center justify-center">
+              <img 
+                  v-if="currentRoom?.thumbnail" 
+                  :src="getSrc(currentRoom.thumbnail)"
+                  :alt="currentRoom.name"
+                  class="w-full h-full object-cover"
+                >
+              <ChatbubbleEllipsesOutline v-else class="w-6 h-6 text-blue-600" />
             </div>
             <div>
               <h2 class="text-lg font-semibold text-gray-800">{{ currentRoom?.name || 'Class Group' }}</h2>
@@ -136,7 +143,7 @@ onBeforeUnmount(() => {
           <button class="btn btn-ghost btn-sm hover:bg-gray-100">
             <SettingsOutline class="w-4 h-4" />
           </button>
-          <div class="badge badge-success bg-green-100 text-green-600 border-0">Online</div>
+          <!-- <div class="badge badge-success bg-green-100 text-green-600 border-0">Online</div> -->
         </div>
       </div>
     </div>

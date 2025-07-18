@@ -83,14 +83,30 @@ export type ResponseUpdateUser = {
   }
 }
 
-export type Room = {
-  _id: string,
-  name: string,
-  description: string,
-  thumbnail: string,
-  createdBy: User,
-  createdAt: string,
-  updatedAt: string,
+export interface Room {
+  _id: string
+  name: string
+  description: string
+  thumbnail?: string
+  createdBy: {
+    _id: string
+    name: string
+    email: string
+    type: 'user' | 'admin' | 'teacher' | 'kid'
+    createdAt: string
+    updatedAt: string
+    // ...other fields
+    isOnline: boolean
+  }
+  createdAt: string
+  updatedAt: string
+  class?: Class | null // optional class assignment
+}
+
+export type Class = {
+  _id: string
+  name: string
+  enrolledStudents: number
 }
 
 export type Invitation = {

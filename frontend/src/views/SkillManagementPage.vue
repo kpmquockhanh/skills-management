@@ -69,81 +69,14 @@
         </div>
       </div>
 
-      <!-- Filters Section -->
-      <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/50 p-6 mb-8">
-        <div class="flex items-center gap-4 mb-6">
-          <FilterOutline class="w-5 h-5 text-blue-600" />
-          <h3 class="text-lg font-semibold text-gray-900">Filters & Search</h3>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">Search</label>
-            <div class="relative">
-              <SearchOutline class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                v-model="filters.search"
-                type="text"
-                placeholder="Search skills or trees..."
-                class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm transition-all duration-200"
-              />
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">Category</label>
-            <select
-              v-model="filters.category"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm transition-all duration-200"
-            >
-              <option value="">All Categories</option>
-              <option v-for="category in skillCategories" :key="category" :value="category">
-                {{ category }}
-              </option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">Level</label>
-            <select
-              v-model="filters.level"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm transition-all duration-200"
-            >
-              <option value="">All Levels</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-              <option value="expert">Expert</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">Type</label>
-            <select
-              v-model="filters.type"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm transition-all duration-200"
-            >
-              <option value="">All Types</option>
-              <option value="career">Career</option>
-              <option value="domain">Domain</option>
-              <option value="technology">Technology</option>
-              <option value="role">Role</option>
-              <option value="certification">Certification</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-          <div class="space-y-2">
-            <label class="block text-sm font-semibold text-gray-700">Status</label>
-            <select
-              v-model="filters.status"
-              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm transition-all duration-200"
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="draft">Draft</option>
-              <option value="deprecated">Deprecated</option>
-              <option value="emerging">Emerging</option>
-            </select>
-          </div>
-        </div>
-      </div>
+      <!-- Lean Filters Section -->
+      <LeanFilters
+        v-model="filters"
+        search-placeholder="Search skills, trees, or descriptions..."
+        :quick-filters="quickFilters"
+        :advanced-filters="advancedFilters"
+        @clear="clearFilters"
+      />
 
       <!-- Skills Section -->
       <div class="mb-12">
@@ -591,19 +524,16 @@ import { useSkillTreeStore } from '@/stores/skillTree'
 import SkillModal from '@/components/SkillModal.vue'
 import SkillTreeModal from '@/components/SkillTreeModal.vue'
 import SkillAssignmentModal from '@/components/SkillAssignmentModal.vue'
+import LeanFilters from '@/components/LeanFilters.vue'
 import {
   BookOutline,
   TrendingUpOutline,
   AddOutline,
-  FilterOutline,
-  SearchOutline,
   SettingsOutline,
   TrashOutline,
   DocumentTextOutline,
   PeopleOutline,
-  StarOutline,
-  LinkOutline,
-  CloseOutline
+  LinkOutline
 } from '@vicons/ionicons5'
 
 // Stores
@@ -666,6 +596,64 @@ const totalActiveUsers = computed(() => {
   return skillStore.skills.reduce((total, skill) => total + (skill.stats?.totalUsers || 0), 0)
 })
 
+// Filter configurations for LeanFilters component
+const quickFilters = computed(() => [
+  // Level filters
+  { type: 'level', value: 'beginner', label: 'Beginner', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  { type: 'level', value: 'intermediate', label: 'Intermediate', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  { type: 'level', value: 'advanced', label: 'Advanced', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  { type: 'level', value: 'expert', label: 'Expert', activeClass: 'bg-blue-100 text-blue-800 ring-2 ring-blue-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  // Status filters
+  { type: 'status', value: 'active', label: 'Active', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  { type: 'status', value: 'inactive', label: 'Inactive', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' },
+  { type: 'status', value: 'draft', label: 'Draft', activeClass: 'bg-green-100 text-green-800 ring-2 ring-green-200', inactiveClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200' }
+])
+
+const advancedFilters = computed(() => [
+  {
+    key: 'category',
+    label: 'Category',
+    placeholder: 'All Categories',
+    options: skillCategories.value.map(category => ({ value: category, label: category }))
+  },
+  {
+    key: 'level',
+    label: 'Level',
+    placeholder: 'All Levels',
+    options: [
+      { value: 'beginner', label: 'Beginner' },
+      { value: 'intermediate', label: 'Intermediate' },
+      { value: 'advanced', label: 'Advanced' },
+      { value: 'expert', label: 'Expert' }
+    ]
+  },
+  {
+    key: 'type',
+    label: 'Type',
+    placeholder: 'All Types',
+    options: [
+      { value: 'career', label: 'Career' },
+      { value: 'domain', label: 'Domain' },
+      { value: 'technology', label: 'Technology' },
+      { value: 'role', label: 'Role' },
+      { value: 'certification', label: 'Certification' },
+      { value: 'custom', label: 'Custom' }
+    ]
+  },
+  {
+    key: 'status',
+    label: 'Status',
+    placeholder: 'All Status',
+    options: [
+      { value: 'active', label: 'Active' },
+      { value: 'inactive', label: 'Inactive' },
+      { value: 'draft', label: 'Draft' },
+      { value: 'deprecated', label: 'Deprecated' },
+      { value: 'emerging', label: 'Emerging' }
+    ]
+  }
+])
+
 // Methods
 const openSkillModal = (skill = null) => {
   selectedSkill.value = skill
@@ -687,7 +675,7 @@ const closeSkillTreeModal = () => {
   showSkillTreeModal.value = false
 }
 
-const saveSkill = async (skill) => {
+const saveSkill = async () => {
   try {
     // The skill is already saved by the modal component
     // We just need to close the modal
@@ -697,7 +685,7 @@ const saveSkill = async (skill) => {
   }
 }
 
-const saveSkillTree = async (skillTree) => {
+const saveSkillTree = async () => {
   try {
     // The skill tree is already saved by the modal component
     // We just need to close the modal
@@ -737,37 +725,15 @@ const manageSkillTreeSkills = (skillTree) => {
   showSkillAssignmentModal.value = true
 }
 
-// Helper methods for skill-tree relationships
-const getSkillTreeIds = (skillId) => {
-  const treeIds = []
-  skillTreeStore.skillTrees.forEach(tree => {
-    if (tree.structure?.roots) {
-      const hasSkill = checkSkillInTree(tree.structure.roots, skillId)
-      if (hasSkill) {
-        treeIds.push(tree._id)
-      }
-    }
-  })
-  return treeIds
-}
-
-const checkSkillInTree = (nodes, skillId) => {
-  for (const node of nodes) {
-    if (node.skillId?._id === skillId || node.skillId === skillId) {
-      return true
-    }
-    if (node.children && node.children.length > 0) {
-      if (checkSkillInTree(node.children, skillId)) {
-        return true
-      }
-    }
+// Filter methods
+const clearFilters = () => {
+  filters.value = {
+    search: '',
+    category: '',
+    level: '',
+    type: '',
+    status: ''
   }
-  return false
-}
-
-const getSkillTreeName = (treeId) => {
-  const skillTree = skillTreeStore.skillTrees.find(tree => tree._id === treeId)
-  return skillTree ? skillTree.name : 'Unknown'
 }
 
 const getSkillTreeSkillIds = (treeId) => {
@@ -796,11 +762,6 @@ const collectSkillIds = (nodes, skillIds) => {
 
 const getSkillTreeSkillCount = (treeId) => {
   return getSkillTreeSkillIds(treeId).length
-}
-
-const getSkillName = (skillId) => {
-  const skill = skillStore.skills.find(s => s._id === skillId)
-  return skill ? skill.name : 'Unknown'
 }
 
 const handleSkillAssignments = async (assignments) => {

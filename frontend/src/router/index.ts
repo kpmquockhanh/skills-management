@@ -145,11 +145,6 @@ const router = createRouter({
       }
     },
     {
-      path: '/friends',
-      name: 'friends',
-      component: () => import('../views/FindFriendPage.vue')
-    },
-    {
       path: '/ai-number',
       name: 'ai_number',
       component: () => import('../views/NumberPredictionPage.vue')

@@ -610,3 +610,45 @@ export const updateSkillProgress = async (req, res) => {
     }));
   }
 }; 
+
+// Get all completed skills from all users (paginated, desc sorted)
+export const getAllCompletedSkills = async (req, res) => {
+  try {
+    const { page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    // Query for completed skills only
+    const query = { status: 'completed' };
+    // Get total count
+    const total = await UserSkillRating.countDocuments(query);
+    // Get paginated, sorted results
+    const ratings = await UserSkillRating.find(query)
+    .populate({
+      path: 'user',
+      select: 'name email photo',
+      populate: {
+        path: 'photo',
+        select: 'src',
+      },
+    })
+      .populate('skill', 'name description category level color icon')
+      .sort({ completedAt: -1, updatedAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+    const pagination = {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total,
+      pages: Math.ceil(total / parseInt(limit))
+    };
+    return res.json(responseHelper(200, {
+      message: 'Completed skills retrieved successfully',
+      ratings,
+      pagination
+    }));
+  } catch (error) {
+    console.error('Error in getAllCompletedSkills:', error);
+    return res.status(500).json(responseHelper(500, {
+      error: 'Internal server error'
+    }));
+  }
+}; 

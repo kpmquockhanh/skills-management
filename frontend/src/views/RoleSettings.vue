@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col gap-4">
-    <div class="collapse collapse-plus bg-base-200">
+    <div class="collapse collapse-plus bg-gray-100">
       <input type="radio" name="my-accordion-3" checked="checked" />
       <div class="collapse-title text-xl font-medium">Manage roles & permissions</div>
       <div class="collapse-content">
@@ -76,11 +76,15 @@
         </div>
       </div>
     </div>
-    <div class="collapse collapse-plus bg-base-200">
+    <div class="collapse collapse-plus bg-gray-100">
       <input type="radio" name="my-accordion-3" />
       <div class="collapse-title text-xl font-medium">Assign roles & permissions</div>
       <div class="collapse-content">
+        <div class="text-center text-sm" v-if="!permissionStore.allItems?.roles.filter((r) => r.name !== 'SAdmin').length">
+          <p class="text-gray-500">No roles available</p>
+        </div>
         <div class="grid grid-cols-6 gap-4">
+          
           <div
             v-for="role in permissionStore.allItems?.roles.filter((r) => r.name !== 'SAdmin')"
             :key="role.name"
@@ -103,7 +107,7 @@
       </div>
     </div>
 
-    <div class="collapse collapse-plus bg-base-200 overflow-visible" ref="trigger">
+    <div class="collapse collapse-plus bg-gray-100 overflow-visible" ref="trigger">
       <input type="radio" name="my-accordion-3" />
       <div class="collapse-title text-xl font-medium">Assign users</div>
       <div class="collapse-content">
