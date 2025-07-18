@@ -153,7 +153,6 @@ import { nextTick, onMounted, ref } from 'vue'
 import { usePermissionStore } from '@/stores/permission'
 import SCheckbox from './SCheckbox.vue'
 import uniq from 'lodash/uniq'
-import { useFriendStore } from '@/stores/friend'
 import { useUser } from '@/stores/user'
 import DynamicImage from '@components/DynamicImage.vue'
 
@@ -165,7 +164,6 @@ const q = ref('')
 const selectedUser = ref(null)
 const trigger = ref(null)
 
-const friendStore = useFriendStore()
 const permissionStore = usePermissionStore()
 const onAddPermission = async () => {
   const r = await permissionStore.createPermission(permissionName.value, '')
@@ -177,7 +175,7 @@ const onAddPermission = async () => {
 
 const onSearch = () => {
   if (!q.value || q.value.length < 5) return
-  friendStore.findFriends(q.value).then((r) => {
+  userStore.fetchUsers(q.value).then((r) => {
     searchedUser.value = r
   })
 }

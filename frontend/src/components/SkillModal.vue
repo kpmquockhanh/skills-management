@@ -335,7 +335,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { CloseOutline, TrashOutline } from '@vicons/ionicons5'
-import { useSkillStore, type Skill } from '../stores/skill'
+import { useSkillStore, type Skill, type UpdateSkillData, type CreateSkillData } from '../stores/skill'
 
 // Props
 interface Props {
@@ -361,9 +361,9 @@ const form = ref({
   shortDescription: '',
   category: '',
   subcategory: '',
-  level: 'beginner' as const,
-  type: 'technical' as const,
-  status: 'active' as const,
+  level: 'beginner' as 'beginner' | 'intermediate' | 'advanced' | 'expert',
+  type: 'technical' as 'technical' | 'soft' | 'domain' | 'tool' | 'framework' | 'language' | 'methodology',
+  status: 'active' as 'active' | 'inactive' | 'deprecated' | 'emerging',
   icon: '',
   color: '#3B82F6',
   learningObjectives: [] as string[],
@@ -423,10 +423,10 @@ const handleSubmit = async () => {
     }
     
     if (props.skill) {
-      const updatedSkill = await skillStore.updateSkill(props.skill._id, skillData)
+      const updatedSkill = await skillStore.updateSkill(props.skill._id, skillData as unknown as UpdateSkillData)
       emit('saved', updatedSkill)
     } else {
-      const newSkill = await skillStore.createSkill(skillData)
+      const newSkill = await skillStore.createSkill(skillData as unknown as CreateSkillData)
       emit('saved', newSkill)
     }
   } catch (error) {
@@ -442,21 +442,21 @@ watch(() => props.skill, (newSkill) => {
     form.value = {
       name: newSkill.name,
       description: newSkill.description || '',
-      shortDescription: newSkill.shortDescription || '',
+      shortDescription: (newSkill as any).shortDescription || '',
       category: newSkill.category,
-      subcategory: newSkill.subcategory || '',
-      level: newSkill.level,
-      type: newSkill.type,
-      status: newSkill.status,
+      subcategory: (newSkill as any).subcategory || '',
+      level: (newSkill.level === 'basic' ? 'beginner' : newSkill.level) as 'beginner' | 'intermediate' | 'advanced' | 'expert',
+      type: newSkill.type as 'technical' | 'soft' | 'domain' | 'tool' | 'framework' | 'language' | 'methodology',
+      status: newSkill.status as 'active' | 'inactive' | 'deprecated' | 'emerging',
       icon: newSkill.icon || '',
       color: newSkill.color || '#3B82F6',
-      learningObjectives: [...(newSkill.learningObjectives || [])],
-      keyConcepts: [...(newSkill.keyConcepts || [])],
-      estimatedTime: newSkill.estimatedTime || 0,
-      difficulty: newSkill.difficulty || 5,
-      marketDemand: newSkill.marketDemand || 5,
-      salaryImpact: newSkill.salaryImpact || 0,
-      tags: [...(newSkill.tags || [])]
+      learningObjectives: [...((newSkill as any).learningObjectives || [])],
+      keyConcepts: [...((newSkill as any).keyConcepts || [])],
+      estimatedTime: (newSkill as any).estimatedTime || 0,
+      difficulty: (newSkill as any).difficulty || 5,
+      marketDemand: (newSkill as any).marketDemand || 5,
+      salaryImpact: (newSkill as any).salaryImpact || 0,
+      tags: [...((newSkill as any).tags || [])]
     }
   } else {
     // Reset form for new skill

@@ -112,7 +112,7 @@ export interface CreateClassData {
     }>
   }
   teachers?: string[] // user IDs
-  settings?: {
+  settings: {
     allowSelfEnrollment: boolean
     requireApproval: boolean
     isPublic: boolean

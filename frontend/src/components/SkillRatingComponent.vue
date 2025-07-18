@@ -108,7 +108,7 @@ const filteredRatings = computed(() => {
 })
 
 const getAllAssessments = () => {
-  const allAssessments = []
+  const allAssessments: any[] = []
   skillRating.ratings.forEach(rating => {
     if (rating.assessments && rating.assessments.length > 0) {
       rating.assessments.forEach(assessment => {
@@ -168,7 +168,7 @@ const loadUserRatings = async () => {
       page: 1,
       limit: 50
     })
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to load skill ratings')
   }
 }
@@ -179,7 +179,7 @@ const loadUserClasses = async () => {
     await userManagement.fetchUserClasses(props.userId)
     userClasses.value = userManagement.userClasses
     await extractSkillsFromClasses()
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error loading user classes:', error)
     toast.error('Failed to load user classes')
   } finally {
@@ -189,7 +189,7 @@ const loadUserClasses = async () => {
 
 const extractSkillsFromClasses = async () => {
   try {
-    const skillsSet = new Set<string>()
+    const skillsSet = new Set<any>()
     
     // Extract skills from all user classes
     for (const cls of userClasses.value) {
@@ -207,7 +207,7 @@ const extractSkillsFromClasses = async () => {
     
     
     // Convert skill IDs to actual skill objects
-    const skillIds = Array.from(skillsSet).map(skill => skill._id.toString())
+    const skillIds = Array.from(skillsSet).map(skill => skill._id?.toString() || skill.toString())
     
     if (skillIds.length > 0) {
       await skillStore.fetchSkills()
@@ -221,7 +221,7 @@ const extractSkillsFromClasses = async () => {
     } else {
       availableSkills.value = []
     }
-  } catch (error) {
+  } catch (error: any) {
     availableSkills.value = []
   }
 }
@@ -246,7 +246,7 @@ const extractSkillsFromSkillTree = (structure: any, skillsSet: Set<string>) => {
 const loadSkills = async () => {
   try {
     await skillStore.fetchSkills()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to load skills: ' + (error.message || 'Unknown error'))
   }
 }
@@ -276,7 +276,7 @@ const extractSkillsFromClass = async (cls: any) => {
     }
     
     skillsFromSelectedClass.value = skillsFromSkillTree
-  } catch (error) {
+  } catch (error: any) {
     skillsFromSelectedClass.value = []
   }
 }
@@ -374,7 +374,7 @@ const saveRating = async () => {
     toast.success('Skill rating saved successfully')
     showRatingModal.value = false
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to save skill rating: ' + (error.message || 'Unknown error'))
   }
 }
@@ -395,6 +395,7 @@ const archiveSkill = async () => {
     await skillRating.archiveSkill(
       props.userId,
       selectedRating.value.skill._id,
+      selectedRating.value.class?._id || '',
       archiveForm.value.reason,
       archiveForm.value.notes
     )
@@ -402,17 +403,17 @@ const archiveSkill = async () => {
     toast.success('Skill archived successfully')
     showArchiveModal.value = false
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to archive skill')
   }
 }
 
 const unarchiveSkill = async (rating: SkillRating) => {
   try {
-    await skillRating.unarchiveSkill(props.userId, rating.skill._id)
+    await skillRating.unarchiveSkill(props.userId, rating.skill._id, rating.class?._id || '')
     toast.success('Skill unarchived successfully')
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to unarchive skill')
   }
 }
@@ -442,7 +443,7 @@ const addAssessment = async () => {
     toast.success('Assessment added successfully')
     showAssessmentModal.value = false
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to add assessment')
   }
 }
@@ -463,23 +464,24 @@ const addNote = async () => {
     await skillRating.addNote(
       props.userId,
       selectedRating.value.skill._id,
+      selectedRating.value.class?._id || '',
       noteForm.value
     )
     
     toast.success('Note added successfully')
     showNoteModal.value = false
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to add note')
   }
 }
 
 const updateProgress = async (rating: SkillRating, progress: number) => {
   try {
-    await skillRating.updateProgress(props.userId, rating.skill._id, progress)
+    await skillRating.updateProgress(props.userId, rating.skill._id, rating.class?._id || '', progress)
     toast.success('Progress updated successfully')
     await loadUserRatings()
-  } catch (error) {
+  } catch (error: any) {
     toast.error('Failed to update progress')
   }
 }
@@ -754,8 +756,8 @@ onMounted(() => {
                 
                 <div class="space-y-2">
                   <div
-                    v-for="assessment in rating.assessments"
-                    :key="assessment._id"
+                    v-for="(assessment, index) in rating.assessments"
+                    :key="`assessment-${index}`"
                     class="bg-white rounded-lg p-3 border border-gray-100"
                   >
                     <div class="flex items-start justify-between">

@@ -45,14 +45,22 @@ const showClassModal = ref(false)
 const showDeleteModal = ref(false)
 
 // Edit form
-const editForm = ref({
+const editForm = ref<{
+  name: string
+  username: string
+  email: string
+  type: 'admin' | 'user' | 'teacher' | 'kid'
+  language: string
+  gender: string
+  isActivated: boolean
+}>({
   name: '',
   username: '',
   email: '',
   type: 'user',
-  language: 'en',
+  language: '',
   gender: '',
-  isActivated: true
+  isActivated: false
 })
 
 // Computed
@@ -62,7 +70,7 @@ const userStats = computed(() => {
   return {
     totalClasses: userClasses.value.length,
     activeClasses: userClasses.value.filter(c => c.status === 'active').length,
-    completedClasses: userClasses.value.filter(c => c.status === 'completed').length,
+    completedClasses: userClasses.value.filter(c => c.status === 'archived').length, // Use 'archived' instead of 'completed'
     daysSinceJoined: dayjs().diff(dayjs(user.value.createdAt), 'day'),
     isOnline: user.value.isOnline || false,
     lastSeen: user.value.lastLogin ? dayjs(user.value.lastLogin).fromNow() : 'Never'
@@ -112,7 +120,7 @@ const loadUser = async () => {
       name: userData.name,
       username: userData.username,
       email: userData.email,
-      type: userData.type,
+      type: userData.type as 'admin' | 'user' | 'teacher' | 'kid',
       language: userData.language,
       gender: userData.gender || '',
       isActivated: userData.isActivated
@@ -130,7 +138,7 @@ const saveUser = async () => {
   
   try {
     await userManagement.updateUser(user.value._id, editForm.value)
-    user.value = { ...user.value, ...editForm.value }
+    user.value = { ...user.value, ...editForm.value } as UserManagementUser
     isEditing.value = false
     toast.success('User updated successfully')
   } catch (error) {

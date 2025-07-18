@@ -6,7 +6,9 @@ export interface Skill {
   _id: string
   name: string
   description: string
+  shortDescription: string
   category: string
+  subcategory: string
   level: 'basic' | 'intermediate' | 'advanced' | 'expert'
   type: 'technical' | 'soft' | 'language' | 'tool' | 'framework' | 'other'
   status: 'active' | 'inactive' | 'archived'

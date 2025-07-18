@@ -19,6 +19,7 @@ export interface Class {
   _id: string
   name: string
   description?: string
+  status?: 'active' | 'inactive' | 'archived' | 'draft'
   thumbnailUrl?: string
   createdBy: {
     _id: string
