@@ -152,7 +152,6 @@
 import { nextTick, onMounted, ref } from 'vue'
 import { usePermissionStore } from '@/stores/permission'
 import SCheckbox from './SCheckbox.vue'
-import uniq from 'lodash/uniq'
 import { useUser } from '@/stores/user'
 import DynamicImage from '@components/DynamicImage.vue'
 
@@ -225,7 +224,7 @@ const onChangeRole = async (role, newPermission, ev) => {
   if (!ev.target.checked) {
     permissions = permissions.filter((p) => p !== newPermission.id)
   } else {
-    permissions = uniq([...role.permissions, newPermission.id])
+    permissions = Array.from(new Set([...role.permissions, newPermission.id]))
   }
   const resp = await permissionStore.updateRole({
     _id: role._id,
